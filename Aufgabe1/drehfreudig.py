@@ -1,5 +1,4 @@
-def readTree(file):
-
+def parseTree(file):
     with open(file, "r") as f:
         line = f.readline().strip("\n")
 
@@ -33,12 +32,12 @@ def readTree(file):
         #     rLine = "(" + rLine
 
         while lp != 0:
-            print(rLine)
+            # print(rLine)
             if index == len(rLine):
-                print(True)
+                # print(True)
                 break
-            else:
-                print(index, len(rLine))
+            # else:
+            #     print(index, len(rLine))
             if rLine[index] == "(":
                 currChildNode += rLine[index]
                 lp += 1
@@ -55,7 +54,7 @@ def readTree(file):
 
         nI = 0
 
-        print(nodes)
+        # print(nodes)
 
         for i in range(len(nodes)):
             if nodes[i] == "":
@@ -69,4 +68,28 @@ def readTree(file):
     return tree
 
 
-print(readTree("drehfreudig01.txt"))
+def weighTree(tree: dict):
+    weightedDict = tree
+    for i in tree:
+        if i == "0.0":
+            weightedDict[i]["weight"] = 1
+
+        try:
+            for j in weightedDict[i]:
+                if j == "weight":
+                    continue
+                print(f"{i}: {weightedDict[i]}")
+                print(f"{j}: {weightedDict[i][j]}")
+                print("weight i", weightedDict[i]["weight"], " length i:", len(weightedDict[i])-1)
+                weightedDict[i][j]["weight"] = weightedDict[i]["weight"] * (len(weightedDict[i])-1)
+                print(weightedDict[i][j]["weight"])
+                weighTree(weightedDict[i])
+        except TypeError or KeyError as e:
+            #print(weightedDict)
+            #raise e
+            print(e)
+    return weightedDict
+
+
+print(parseTree("drehfreudig01.txt"))
+print(weighTree(parseTree("drehfreudig01.txt")))
