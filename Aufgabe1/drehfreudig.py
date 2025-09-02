@@ -1,10 +1,7 @@
 def readTree(file):
-    line = ""
 
     with open(file, "r") as f:
-        line = f.readline()
-
-    line.strip("\n")
+        line = f.readline().strip("\n")
 
     tree: dict = {}
 
@@ -31,13 +28,23 @@ def readTree(file):
         index = 1
         lp = 1
 
+        # if len(rLine) % 2 != 0:
+        #     print("not equal: ", rLine)
+        #     rLine = "(" + rLine
+
         while lp != 0:
+            print(rLine)
+            if index == len(rLine):
+                print(True)
+                break
+            else:
+                print(index, len(rLine))
             if rLine[index] == "(":
+                currChildNode += rLine[index]
                 lp += 1
                 index += 1
-                currChildNode += rLine[index]
             else:
-                if lp == 1:
+                if lp == 2:
                     currChildNode += rLine[index]
                     nodes.append(currChildNode)
                     currChildNode = ""
@@ -45,16 +52,21 @@ def readTree(file):
                     currChildNode += rLine[index]
                 lp -= 1
                 index += 1
-            if index == len(rLine):
-                break
 
         nI = 0
 
+        print(nodes)
+
         for i in range(len(nodes)):
             if nodes[i] == "":
-                parent[f"{level}.{nI}"] = 0
+                parent[f"{level}.{nI}"] = None
                 continue
             parent[f"{level}.{nI}"] = getChildNodes(nodes[i], level + 1)
+            nI += 1
+        return parent
+
+    tree["0.0"] = getChildNodes(line, 1)
+    return tree
 
 
 print(readTree("drehfreudig01.txt"))
