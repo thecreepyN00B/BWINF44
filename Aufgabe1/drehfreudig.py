@@ -1,3 +1,6 @@
+from PIL import Image, ImageDraw
+
+
 def parseTree(file):
     with open(file, "r") as f:
         line = f.readline().strip("\n")
@@ -68,28 +71,76 @@ def parseTree(file):
     return tree
 
 
-def weighTree(tree: dict):
+def weighTree(tree: dict, w):
     weightedDict = tree
+    weights = w
+
     for i in tree:
         if i == "0.0":
             weightedDict[i]["weight"] = 1
 
         try:
             for j in weightedDict[i]:
+                if not weightedDict[i][j]:
+                    weights.append(weightedDict[i]["weight"] * (len(weightedDict[i]) - 1))
+
                 if j == "weight":
                     continue
-                print(f"{i}: {weightedDict[i]}")
-                print(f"{j}: {weightedDict[i][j]}")
-                print("weight i", weightedDict[i]["weight"], " length i:", len(weightedDict[i])-1)
+                # print(f"{i}: {weightedDict[i]}")
+                # print(f"{j}: {weightedDict[i][j]}")
+                # print("weight i", weightedDict[i]["weight"], " length i:", len(weightedDict[i])-1)
                 weightedDict[i][j]["weight"] = weightedDict[i]["weight"] * (len(weightedDict[i])-1)
-                print(weightedDict[i][j]["weight"])
-                weighTree(weightedDict[i])
-        except TypeError or KeyError as e:
-            #print(weightedDict)
-            #raise e
-            print(e)
-    return weightedDict
+                # print(f'weight j: {weightedDict[i][j]["weight"]}')
+            weighTree(weightedDict[i], weights)
+        except TypeError as e:
+            # print(weightedDict)
+            # raise e
+            # print(e)
+            pass
+
+    return weightedDict, weights
+
+def drawTree(tree: dict, weights):
+    if weights != list(reversed(weights)):
+        # print(weights)
+        # print(list(reversed(weights)))
+        return "Nicht drehfreudig."
+
+    def dict_depth(d):
+        return 1 + (max(map(dict_depth, d.values()))
+                        if not isinstance(d, int) else 0)
+
+    y = 300 * dict_depth(tree)
+    img = Image.new("RGB", (1000, y))
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((0, 0, 1000, y), fill="white")
+
+    def drawRectangles(node, x):
+        for i in node:
+            if i == "0.0":
+                draw.rectangle((0, 0, 1000, 300), fill="orange", outline="black", width=5)
+            try:
+                for j in node[i]:
+                    if j == "weight":
+                        continue
+                    print(x + (1000/node[i][j]["weight"]))
+                    width = (1000/node[i][j]["weight"]) * int(j[-1])
+                    draw.rectangle((x + width, (int(j[0])) * 300,
+                                    x + width + (1000/node[i][j]["weight"]), (int(j[0]) + 1)*300),
+                                    fill="orange", outline="black", width=5)
+                drawRectangles(node[i], x + (1000/node[i]["weight"]))
+            except TypeError as e:
+                pass
+
+    drawRectangles(tree, 0)
+    img.show()
 
 
-print(parseTree("drehfreudig01.txt"))
-print(weighTree(parseTree("drehfreudig01.txt")))
+    return "Drehfreudig."
+
+p = parseTree("drehfreudig01.txt")
+w = weighTree(p, [])
+dr = drawTree(*w)
+# print(p)
+# print(w)
+print(dr)
