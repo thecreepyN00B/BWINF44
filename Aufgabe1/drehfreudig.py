@@ -110,7 +110,7 @@ def drawTree(tree: dict, weights):
         return 1 + (max(map(dict_depth, d.values()))
                         if not isinstance(d, int) else 0)
 
-    y = 300 * dict_depth(tree)
+    y = 300 * (dict_depth(tree) +1) + 300
     img = Image.new("RGB", (1000, y))
     draw = ImageDraw.Draw(img)
     draw.rectangle((0, 0, 1000, y), fill="white")
@@ -119,16 +119,24 @@ def drawTree(tree: dict, weights):
         for i in node:
             if i == "0.0":
                 draw.rectangle((0, 0, 1000, 300), fill="orange", outline="black", width=5)
+            if i != "weight":
+                # print(node[i]["weight"], i[-1])
+                # print(int(i[-1]) * (1000/node[i]["weight"]))
+                print(x + (1000/(node[i]["weight"] * len(node[i])))*int(i[-1]))
+                print("key:",i)
+                # x = int(i[-1]) * node[i]["weight"]
             try:
                 for j in node[i]:
                     if j == "weight":
                         continue
-                    print(x + (1000/node[i][j]["weight"]))
-                    width = (1000/node[i][j]["weight"]) * int(j[-1])
+                    # print(x + (1000/node[i]["weight"]))
+                    width = (1000/node[i][j]["weight"]) * int(j[-1]) + (1000/node[i]["weight"]) * int(i[-1])
                     draw.rectangle((x + width, (int(j[0])) * 300,
-                                    x + width + (1000/node[i][j]["weight"]), (int(j[0]) + 1)*300),
+                                    x + width + (1000/node[i][j]["weight"]), y/2), # (int(j[0]) + 1)*300),
                                     fill="orange", outline="black", width=5)
-                drawRectangles(node[i], x + (1000/node[i]["weight"]))
+                    #x1 += node[i]["weight"]
+                    #afterweight = node[i]["weight"] * len(node[i])
+                drawRectangles(node[i], x + int(i[-1]) * (1000/node[i]["weight"]))
             except TypeError as e:
                 pass
 
