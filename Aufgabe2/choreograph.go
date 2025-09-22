@@ -5,5 +5,7 @@ import (
 )
 
 func main() {
-	
+	fmt.Println("VLAAAAD")
 }
+
+func parse()
