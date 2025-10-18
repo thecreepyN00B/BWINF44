@@ -8,7 +8,23 @@ import (
 )
 
 func main() {
-	r, err := os.Open("choreo01.txt")
+	figures, tacts := readFigures("choreo01.txt")
+	fmt.Println(figures)
+	fmt.Println(tacts)
+}
+
+type Figure struct {
+	name   string
+	tacts  int
+	endpos string
+}
+
+func MakeFigure(name string, tacts int, endpos string) Figure {
+	return Figure{name, tacts, endpos}
+}
+
+func readFigures(file string) ([]Figure, int) {
+	r, err := os.Open(file)
 
 	if err != nil {
 		panic(err)
@@ -21,7 +37,7 @@ func main() {
 	scanner.Split(bufio.ScanWords)
 
 	scanner.Scan()
-	// tacts, _ := strconv.Atoi(scanner.Text())
+	tacts, _ := strconv.Atoi(scanner.Text())
 
 	scanner.Scan()
 	n, _ := strconv.Atoi(scanner.Text())
@@ -41,20 +57,8 @@ func main() {
 		figures[i] = MakeFigure(name, tacts, endpos)
 	}
 
-	fmt.Println(figures)
+	return figures, tacts
 }
-
-type Figure struct {
-	name   string
-	tacts  int
-	endpos string
-}
-
-func MakeFigure(name string, tacts int, endpos string) Figure {
-	return Figure{name, tacts, endpos}
-}
-
-// func readFigures() // --> Datei ablesen, einzelne Figuren zurueckgeben
 
 func useFigure(config string, input string) string {
 	prime := "ABCDEFGHIJKLMNOP"
