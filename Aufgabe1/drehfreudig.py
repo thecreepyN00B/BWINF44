@@ -3,31 +3,31 @@ import os.path
 from PIL import Image, ImageDraw
 
 
-def parseTree(file):
+def parseTree(file): # Funktion zum Umwandeln der Beispiele in Dictionaries
     with open(file, "r") as f:
         line = f.readline().strip("\n")
 
     tree: dict = {}
 
-    def getChildNodes(remainingLine, level):
+    def getChildNodes(remainingLine, level): # Funktion zum rekursiven Umwandeln der Klammernotation in ein Dictionary
         parent = {}
-        nodes = []
+        nodes = [] # Variable zum Speichern der direkten Kinder (samt deren Kinder) des aktuellen Knotens
 
-        currentChildNode = ""
+        currentChildNode = "" # Variable zum temporären Speichern eines Knoten-Kindes 
 
-        index = 1
-        leftParanthesesCount = 1
+        index = 1 # Index 1, da die erste Klammer der zu behandelnde Knoten selbst ist
+        leftParanthesesCount = 1 # Variable zum Speichern der sich öffnenden Klammer bzw. Kinder
 
-        while leftParanthesesCount != 0:
-            if index == len(remainingLine):
+        while leftParanthesesCount != 0: # Durchgehen des Knotens, bis dieser abgearbeitet ist, also seine Klammer geschlossen wird
+            if index == len(remainingLine): # Überprüfen, falls das Kind keine weiteren Kinder besitzt
                 break
 
             if remainingLine[index] == "(":
-                currentChildNode += remainingLine[index]
-                leftParanthesesCount += 1
-                index += 1
+                currentChildNode += remainingLine[index] # eine sich öffnende Klammer bedeutet ein Kind, welches dem temporären Speicher zugewiesen wird
+                leftParanthesesCount += 1 # um 1 hochsetzen, da ein neues Kind begonnen wurde
+                index += 1 
             else:
-                if leftParanthesesCount == 2:
+                if leftParanthesesCount == 2: # ein Kind des aktuellen Knotens ist abgeschlossen
                     currentChildNode += remainingLine[index]
                     nodes.append(currentChildNode)
                     currentChildNode = ""
@@ -38,8 +38,9 @@ def parseTree(file):
 
         nodeIndex = 0
 
-        for i in range(len(nodes)):
-            if nodes[i] == "":
+        for i in range(len(nodes)): 
+            print(nodes[i])
+            if nodes[i] == "": # falls das Kind keine weiteren Kinder besitzt
                 parent[f"{level}.{nodeIndex}"] = None
                 continue
             parent[f"{level}.{nodeIndex}"] = getChildNodes(nodes[i], level + 1)
