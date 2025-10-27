@@ -122,7 +122,7 @@ def drawTree(tree: dict, weights):
 
                 lp1 = x + (x / nodes[node]["weight"] * (int(node[-1]) + .5)), int(node[0]) * yscale + yscale * .3 # erster Ansatzpunkt der Linie (x,y)
                 lp2 = x + width + (x / nodes[node][childNode]["weight"]) / 2, ry1 + yscale * .3 # zweiter Ansatzpunkt der Linie (x,y)
-                lp = (*lp1, *lp2) # #line erfordert Koordinaten im format ((x,y),(x,y))
+                lp = (*lp1, *lp2) # line() erfordert Koordinaten im Format ((x,y),(x,y))
 
                 draw.rectangle((rx1, ry1, rx2, ry2),
                                 fill="orange", outline="black", width=5)
@@ -140,6 +140,7 @@ def drawTree(tree: dict, weights):
     counterPart = img.crop((0, 0, x, int(y/2))).rotate(180) # Bild kopieren und um 180° gespiegelt einfügen
     img.paste(counterPart, (0, int(y/2)))
 
+    if not os.path.isdir('./BaumBilder'): os.mkdir("./BaumBilder")
     img.save("./BaumBilder/tree.png")
 
     return "Drehfreudig."
@@ -156,7 +157,6 @@ def testInput(input: str) -> bool:
     if len(input) % 2 != 0: return False # (1)
 
     for i in range(len(input)):
-        print(i, len(input) - 1, pO)
         if pO == -1 or (pO == 0 and (i != len(input) - 1 and i != 0)): # (2)
             return False
         if input[i] == "(":
