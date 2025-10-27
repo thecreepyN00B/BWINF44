@@ -3,7 +3,7 @@ import os.path
 from PIL import Image, ImageDraw
 
 
-def parseTree(file): # Funktion zum Umwandeln der Beispiele in Dictionaries
+def parseTree(file: str) -> dict: # Funktion zum Umwandeln der Beispiele in Dictionaries
     with open(file, "r") as f:
         line = f.readline().strip("\n")
 
@@ -11,7 +11,7 @@ def parseTree(file): # Funktion zum Umwandeln der Beispiele in Dictionaries
 
     tree: dict = {}
 
-    def getChildNodes(remainingLine, level): # Funktion zum rekursiven Umwandeln der Klammernotation in ein Dictionary
+    def getChildNodes(remainingLine: str, level: int) -> dict: # Funktion zum rekursiven Umwandeln der Klammernotation in ein Dictionary
         parent = {}
         nodes = [] # Variable zum Speichern der direkten Kinder (samt deren Kinder) des aktuellen Knotens
 
@@ -51,7 +51,7 @@ def parseTree(file): # Funktion zum Umwandeln der Beispiele in Dictionaries
     return tree
 
 
-def weighTree(tree: dict, w): # DFS für das Gewichten des Baumes
+def weighTree(tree: dict, w: list) -> tuple[dict, list]: # DFS für das Gewichten des Baumes
     weightedDict = tree
     weights = w
 
@@ -78,28 +78,28 @@ def weighTree(tree: dict, w): # DFS für das Gewichten des Baumes
     return weightedDict, weights
 
 
-def drawTree(tree: dict, weights):
+def drawTree(tree: dict, weights: list) -> str:
     if weights != list(reversed(weights)):
         return "Nicht drehfreudig."
 
-    def dict_depth(d): # Funktion um die Tiefe des Dicts zu ermittlen
+    def dict_depth(d: dict) -> int: # Funktion um die Tiefe des Dicts zu ermittlen
         return 1 + (max(map(dict_depth, d.values()))
                         if not isinstance(d, int) else 0)
     
     yscale = 200
 
     # Canvasgröße
-    x_canvas = 2000 
-    y_canvas = yscale * (dict_depth(tree) +1) + yscale
+    canvas_width = 2000 
+    canvas_height = yscale * (dict_depth(tree) +1) + yscale
 
-    img = Image.new("RGB", (x_canvas, y_canvas))
+    img = Image.new("RGB", (canvas_width, canvas_height))
     draw = ImageDraw.Draw(img)
-    draw.rectangle((0, 0, x_canvas, y_canvas), fill="white")
+    draw.rectangle((0, 0, canvas_width, canvas_height), fill="white")
 
-    def drawStructure(nodes, x):
+    def drawStructure(nodes: dict, x: float) -> None:
         for node in nodes:
             if node == "0.0": # Root muss aufgrund der Nichterfassung als Child bzw. Kind seperat gezeichnet werden
-                draw.rectangle((0, 0, x_canvas, yscale), fill="orange", outline="black", width=5)
+                draw.rectangle((0, 0, canvas_width, yscale), fill="orange", outline="black", width=5)
 
             if node == "weight":
                 continue
@@ -109,15 +109,15 @@ def drawTree(tree: dict, weights):
                     continue
                 
                 # Breite des zuzeichnenden Rechtsecks
-                width = (x_canvas / nodes[node][childNode]["weight"]) * int(childNode[-1]) + (x_canvas / nodes[node]["weight"]) * int(node[-1])
+                width = (canvas_width / nodes[node][childNode]["weight"]) * int(childNode[-1]) + (canvas_width / nodes[node]["weight"]) * int(node[-1])
 
                 rx1 = x + width # linker Ansatzpunkt
                 ry1 = (int(childNode[0])) * yscale # oberer Ansatzpunkt
-                rx2 = x + width + (x_canvas / nodes[node][childNode]["weight"]) # rechter Ansatzpunkt
-                ry2 = y_canvas/2 # unterer Ansatzpunkt
+                rx2 = x + width + (canvas_width / nodes[node][childNode]["weight"]) # rechter Ansatzpunkt
+                ry2 = canvas_height/2 # unterer Ansatzpunkt
 
-                lp1 = x + (x_canvas / nodes[node]["weight"] * (int(node[-1]) + .5)), int(node[0]) * yscale + yscale * .3 # erster Ansatzpunkt der Linie (x,y)
-                lp2 = x + width + (x_canvas / nodes[node][childNode]["weight"]) / 2, ry1 + yscale * .3 # zweiter Ansatzpunkt der Linie (x,y)
+                lp1 = x + (canvas_width / nodes[node]["weight"] * (int(node[-1]) + .5)), int(node[0]) * yscale + yscale * .3 # erster Ansatzpunkt der Linie (x,y)
+                lp2 = x + width + (canvas_width / nodes[node][childNode]["weight"]) / 2, ry1 + yscale * .3 # zweiter Ansatzpunkt der Linie (x,y)
                 lp = (*lp1, *lp2) # line() erfordert Koordinaten im Format ((x,y),(x,y))
 
                 draw.rectangle((rx1, ry1, rx2, ry2),
@@ -129,12 +129,12 @@ def drawTree(tree: dict, weights):
                 draw.circle(lp2, radius=8, fill="red")
 
             # da die x-Koordinate mit jedem neuen Parent-Node verschoben wird, muss es neu übergeben werden
-            drawStructure(nodes[node], x + int(node[-1]) * (x_canvas / nodes[node]["weight"])) 
+            drawStructure(nodes[node], x + int(node[-1]) * (canvas_width / nodes[node]["weight"])) 
 
     drawStructure(tree, 0)
 
-    counterPart = img.crop((0, 0, x_canvas, int(y_canvas/2))).rotate(180) # Bild kopieren und um 180° gespiegelt einfügen
-    img.paste(counterPart, (0, int(y_canvas/2)))
+    counterPart = img.crop((0, 0, canvas_width, int(canvas_height/2))).rotate(180) # Bild kopieren und um 180° gespiegelt einfügen
+    img.paste(counterPart, (0, int(canvas_height/2)))
 
     if not os.path.isdir('./BaumBilder'): os.mkdir("./BaumBilder")
     img.save("./BaumBilder/tree.png")
