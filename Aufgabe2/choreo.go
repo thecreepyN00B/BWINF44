@@ -11,19 +11,24 @@ import (
 
 func main() {
 	figures, tacts := readFigures("choreo04.txt")
-	fmt.Println(figures)
-	fmt.Println(tacts)
 	tacts1 = tacts
 
 	choreos := getChoreos(figures, []*Figure{}, startlineup)
+	
+	fmt.Println("Mögliche Choreographien: ")
 	printChoreos(choreos)
-	fmt.Println("------------------------------")
 	if len(choreos) > 1 {
+		fmt.Println("Möglichst viele unterschiedliche Figuren: ")
 		printChoreo(mostUniqueFigures(choreos))
+		fmt.Println("Möglichst viele Figuren: ")
 		printChoreo(mostFigures(choreos))
+		fmt.Println("Möglichst wenige Figuren: ")
 		printChoreo(leastFigures(choreos))
+		fmt.Println("Möglichst große von Tänzern zurückgelegte Strecke: ")
 		printChoreo(mostDistance(choreos))
+		fmt.Println("Möglichst kleine von Tänzern zurückgelegte Strecke: ")
 		printChoreo(leastDistance(choreos))
+		
 	}
 
 }
@@ -44,6 +49,10 @@ func NewFigure(name string, tacts int, endpos string) *Figure {
 	fig.tacts = tacts
 	fig.endpos = endpos
 	return fig
+}
+
+func (fig Figure) String() string {
+	return fig.name
 }
 
 func readFigures(file string) ([]*Figure, int) {
@@ -222,18 +231,28 @@ func leastDistance(set [][]*Figure) []*Figure {
 	return leastDistanceChoreo
 }
 
-func printChoreos(combs [][]*Figure) {
-	for _, a := range combs {
-		for _, p := range a {
-			fmt.Println(*p)
+func printChoreos(choreos [][]*Figure) {
+	for i, a := range choreos {
+		fmt.Printf("%d: ", i+1)
+		for j, p := range a {
+			if j != len(a)-1 {
+			fmt.Printf("%s | ", *p)
+		} else {
+			fmt.Printf("%s", *p)
+		}
 		}
 		fmt.Print("\n")
 	}
+	fmt.Print("\n\n")
 }
 
 func printChoreo(choreo []*Figure) {
-	for _, p := range choreo {
-			fmt.Println(*p)
+	for i, p := range choreo {
+		if i != len(choreo)-1 {
+			fmt.Printf("%s | ", *p)
+		} else {
+			fmt.Printf("%s", *p)
 		}
-		fmt.Print("\n")
+	}
+	fmt.Print("\n\n")
 }
