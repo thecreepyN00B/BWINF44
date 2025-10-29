@@ -10,10 +10,9 @@ import (
 )
 
 func main() {
-	figures, tacts := readFigures("choreo04.txt")
-	tacts1 = tacts
+	figures, tacts = readFigures("choreo01.txt")
 
-	choreos := getChoreos(figures, []*Figure{}, startlineup)
+	choreos := getChoreos([]*Figure{}, startlineup)
 	
 	fmt.Println("Mögliche Choreographien: ")
 	printChoreos(choreos)
@@ -35,7 +34,8 @@ func main() {
 
 const startlineup string = "ABCDEFGHIJKLMNOP"
 
-var tacts1 int
+var figures []*Figure
+var tacts int
 
 type Figure struct {
 	name   string
@@ -107,7 +107,7 @@ func useFigure(fig *Figure, input string) string {
 	return end
 }
 
-func getChoreos(list []*Figure, usedFigures []*Figure, lineup string) [][]*Figure {
+func getChoreos(usedFigures []*Figure, lineup string) [][]*Figure {
 	var solutions [][]*Figure
 	var usedtacts int
 
@@ -115,22 +115,22 @@ func getChoreos(list []*Figure, usedFigures []*Figure, lineup string) [][]*Figur
 		usedtacts += p.tacts
 	}
 
-	if usedtacts == tacts1 {
+	if usedtacts == tacts {
 		if lineup == startlineup {
 			return [][]*Figure{usedFigures}
 		} else {
 			return solutions
 		}
 	}
-	if usedtacts > tacts1 {
+	if usedtacts > tacts {
 		return solutions
 	}
 
-	for _, p := range list {
+	for _, p := range figures {
 		newlineup := useFigure(p, lineup)
 		newFigures := make([]*Figure, len(usedFigures))
 		copy(newFigures, usedFigures)
-		solutions = append(solutions, getChoreos(list, append(newFigures, p), newlineup)...)
+		solutions = append(solutions, getChoreos(append(newFigures, p), newlineup)...)
 	}
 
 	return solutions
