@@ -51,7 +51,7 @@ def parseTree(file: str) -> dict: # Funktion zum Umwandeln der Beispiele in Dict
     return tree
 
 
-def weighTree(tree: dict, w: list) -> tuple[dict, list]: # DFS für das Gewichten des Baumes
+def weighTree(tree: dict, w: list) -> tuple[dict, list[tuple]]: # DFS für das Gewichten des Baumes
     weightedDict = tree
     weights = w
 
@@ -61,9 +61,9 @@ def weighTree(tree: dict, w: list) -> tuple[dict, list]: # DFS für das Gewichte
 
         if node == "weight": # Ungültiger Parent-Node
             continue
-
+        
         if len(weightedDict[node]) == 1: # Länge 1 bedeutet, dass der Node keine Kinder besitzt und somit das Ende ist
-            weights.append(weightedDict[node]["weight"]) # Das Gewicht des Nodes wird der Liste an Endgewichten hinzugefügt
+            weights.append((weightedDict[node]["weight"], node[0])) # Das Gewicht des Nodes wird der Liste an Endgewichten hinzugefügt
 
         for childNode in weightedDict[node]:
 
