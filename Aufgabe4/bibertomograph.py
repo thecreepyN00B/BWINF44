@@ -183,6 +183,7 @@ class Board:
 
 
     def check(self):
+        print(1)
         for y in range(len(self.spalten)):
             if self.count(y, 1, 's') > self.n - self.spalten[y]:
                 return True
@@ -222,19 +223,19 @@ class Board:
                     return False
         return True
 
-    def next(self):
-        prev = copy.deepcopy(self.fields)
-        for i in range(self.n):
-            for j in range(self.n):
-                prev[i][j] = prev[i][j].color
-
-        prev[self.search()[0]][self.search()[1]] = 1
-        next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
-
-        prev[self.search()[0]][self.search()[1]] = 2
-        next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
-
-        return next1.solvestep()
+#    def next(self):
+#        prev = copy.deepcopy(self.fields)
+#        for i in range(self.n):
+#            for j in range(self.n):
+#                prev[i][j] = prev[i][j].color
+#
+#        prev[self.search()[0]][self.search()[1]] = 1
+#        next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
+#
+#        prev[self.search()[0]][self.search()[1]] = 2
+#        next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
+#
+#        return next1.solvestep()
 
 
     def solvestep(self):
@@ -250,7 +251,7 @@ class Board:
         temp1 = 1
         temp2 = 0
 
-        while temp1 =! temp2 and not self.check():
+        while temp1 != temp2 and not self.check():
             temp1 = copy.deepcopy(self.fields)
             for i in range(self.n):
                 for j in range(self.n):
@@ -264,6 +265,7 @@ class Board:
                     temp2[i][j] = temp2[i][j].color
 
         if not self.check():
+            print(2)
             solutions = []
             prev = copy.deepcopy(self.fields)
             for i in range(self.n):
@@ -296,12 +298,11 @@ diagonalen_ol_ur = e.readline().split()
 diagonalen_ul_or = e.readline().split()
 e.close
 brettttt = Board(n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or)
+
 #brettttt.printindex()
-brettttt.printboard()
-brettttt.work()
-brettttt.check()
-brettttt.split()
-brettttt.printboard()
+#brettttt.printboard()
+
+print(brettttt.solvestep())
 
 
 
