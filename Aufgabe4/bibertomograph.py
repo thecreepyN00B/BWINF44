@@ -26,12 +26,12 @@ class Board:
         for i in range(n):
             self.fields.append([Field(0, i * n + j) for j in range(n)])
 
-        self.numbers = [spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or]
         self.n = n
-        self.spalten = spalten
-        self.zeilen = zeilen
-        self.diagonalen_ol_ur = diagonalen_ol_ur
-        self.diagonalen_ul_or = diagonalen_ul_or
+        self.spalten = [int(x) for x in spalten]
+        self.zeilen = [int(x) for x in zeilen]
+        self.diagonalen_ol_ur = [int(x) for x in diagonalen_ol_ur]
+        self.diagonalen_ul_or = [int(x) for x in diagonalen_ul_or]
+        self.numbers = [self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or]
 
     def __str__(self):
         list = []
@@ -93,9 +93,9 @@ class Board:
             list = []
             for i in range(-abs(10 - x - 1) + 10):
                 if x < n:
-                    list.append(self.fields[9 - (n - 1 - i)][x - 1 - i])
+                    list.append(self.fields[n - 1 - i][x - 1 - i])
                 else:
-                    list.append(self.fields[9 - (x - n + i)][n - 1 - i])
+                    list.append(self.fields[9 - (x - n + i + 1)][n - 1 - i])
             for i in range(len(list)):
                 list[i] = list[i].color
             for i in list:
@@ -106,9 +106,9 @@ class Board:
             list = []
             for i in range(-abs(10 - x - 1) + 10):
                 if x < n:
-                    list.append(self.fields[n - 1 - i][x - i])
+                    list.append(self.fields[9 - (n - 1 - i)][x - i])
                 else:
-                    list.append(self.fields[x - n + i][n - 1 - i])
+                    list.append(self.fields[x - n + i + 1][n - 1 - i])
             for i in range(len(list)):
                 list[i] = list[i].color
             for i in list:
@@ -117,58 +117,66 @@ class Board:
             return count
 
     def check(self):
-        for y in self.spalten:
+        for y in range(len(self.spalten)):
             if self.count(y, 0, 's') == self.spalten[y] - self.count(y, 2, 's'):
                 for x in range(self.n):
-                    if getFieldColor(self,y ,x) == 0:
-                        setFieldColor(self,y ,x, 2)
+                    if self.getFieldColor(y, x) == 0:
+                        self.setFieldColor(y, x, 2)
             elif self.count(y, 2, 's') ==  self.spalten[y]:
                 for x in range(self.n):
-                    if getFieldColor(self,y ,x) == 0:
-                        setFieldColor(self,y ,x, 1)
-        for x in self.zeilem:
+                    if self.getFieldColor(y, x) == 0:
+                        self.setFieldColor(y, x, 1)
+        for x in range(len(self.zeilen)):
             if self.count(x, 0, 'z') == self.zeilen[x] - self.count(x, 2, 'z'):
                 for y in range(self.n):
-                    if getFieldColor(self, y, x) == 0:
-                        setFieldColor(self, y, x, 2)
+                    if self.getFieldColor(y, x) == 0:
+                        self.setFieldColor(y, x, 2)
             elif self.count(x, 2, 'z') == self.zeilen[x]:
                 for y in range(self.n):
-                    if getFieldColor(self, y, x) == 0:
-                        setFieldColor(self, y, x, 1)
-        for i in self.diagonalen_ol_ur:
-            if self.count(i, 0, 'd_ol') == self.diagonalen_ol_ur[i] - self.count(i, 2, 'd_ol'):
+                    if self.getFieldColor(y, x) == 0:
+                        self.setFieldColor(y, x, 1)
+        for x in range(len(self.diagonalen_ol_ur)):
+            #print(self.count(x, 0, 'd_ol'), self.diagonalen_ol_ur[x], self.count(x, 2, 'd_ol'))
+            #print(self.count(x, 2, 'd_ol'), self.diagonalen_ol_ur[x])
+            if self.count(x, 0, 'd_ol') == self.diagonalen_ol_ur[x] - self.count(x, 2, 'd_ol'):
+                print(2)
                 for i in range(-abs(10 - x - 1) + 10):
                     if x < n:
-                        if getFieldColor(self, x - i, n - 1 - i) == 0:
-                            setFieldColor(self, x - i, n - 1 - i, 2)
+                        if self.getFieldColor(x - i, 9 - (n - 1 - i)) == 0:
+                            self.setFieldColor(x - i, 9 - (n - 1 - i), 2)
                     else:
-                        if getFieldColor(self, n - 1 - i, x - n + i) == 0:
-                            setFieldColor(self, n - 1 - i, x - n + i, 2)
-            elif self.count(y, 2, 'd_ol') == self.diagonalen_ol_ur[y]:
+                        if self.getFieldColor(n - 1 - i, 9 - (n - 1 - i)) == 0:
+                            self.setFieldColor(n - 1 - i, 9 - (n - 1 - i), 2)
+            elif self.count(x, 2, 'd_ol') == self.diagonalen_ol_ur[x]:
+                print("1")
                 for i in range(-abs(10 - x - 1) + 10):
                     if x < n:
-                        if getFieldColor(self, x - i, n - 1 - i) == 0:
-                            setFieldColor(self, x - i, n - 1 - i, 2)
+                        if self.getFieldColor(x - i, 9 - (n - 1 - i)) == 0:
+                            self.setFieldColor(x - i, 9 - (n - 1 - i), 1)
                     else:
-                        if getFieldColor(self, n - 1 - i, x - n + i) == 0:
-                            setFieldColor(self, n - 1 - i, x - n + i, 1)
-        for i in self.diagonalen_ul_or:
-            if self.count(i, 0, 'd_ul') == self.diagonalen_ul_or[i] - self.count(i, 2, 'd_ul'):
+                        if self.getFieldColor(n - 1 - i, x - n + i + 1) == 0:
+                            self.setFieldColor(n - 1 - i, x - n + i + 1, 1)
+        for x in range(len(self.diagonalen_ul_or)):
+            if self.count(x, 0, 'd_ul') == self.diagonalen_ul_or[x] - self.count(x, 2, 'd_ul'):
                 for i in range(-abs(10 - x - 1) + 10):
                     if x < n:
-                        if getFieldColor(self, x - i, 9 - (n - 1 - i)) == 0:
-                            setFieldColor(self, x - i, 9 - (n - 1 - i, 2))
+                        if self.getFieldColor(x - i, n - 1 - i) == 0:
+                            pass
+                            self.setFieldColor(x - i, n - 1 - i, 2)
                     else:
-                        if getFieldColor(self, n - 1 - i, x - n + i) == 0:
-                            setFieldColor(self, n - 1 - i, x - n + i, 2)
-            elif self.count(y, 2, 'd_ul') == self.diagonalen_ul_or[y]:
+                        if self.getFieldColor(n - 1 - i, x - n + i) == 0:
+                            pass
+                            self.setFieldColor(n - 1 - i, x - n + i, 2)
+            elif self.count(x, 2, 'd_ul') == self.diagonalen_ul_or[x]:
                 for i in range(-abs(10 - x - 1) + 10):
                     if x < n:
-                        if getFieldColor(self, x - i, n - 1 - i) == 0:
-                            setFieldColor(self, x - i, n - 1 - i, 2)
+                        if self.getFieldColor(x - i, n - 1 - i) == 0:
+                            pass
+                            self.setFieldColor(x - i, n - 1 - i, 1)
                     else:
-                        if getFieldColor(self, n - 1 - i, 9 - (x - n + i)) == 0:
-                            setFieldColor(self, n - 1 - i, 9 - (x - n + i, 1))
+                        if self.getFieldColor(n - 1 - i, x - n + i) == 0:
+                            pass
+                            self.setFieldColor(n - 1 - i, x - n + i, 1)
 
 
 
