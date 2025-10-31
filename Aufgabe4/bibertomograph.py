@@ -22,10 +22,24 @@ class Board:
     diagonalen_ol_ur = []
     diagonalen_ul_or = []
 
-    def __init__(self, n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, prev = 0):
-        if prev != 0:
+    def __init__(self, n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, prev):
+        self.fields = []
+        #print(n)
+        if isinstance(prev, list):
+            #print(prev)
             for i in range(n):
+                #print(prev[i])
                 self.fields.append([Field(prev[i][j], i * n + j) for j in range(n)])
+            #print()
+            #print(len(self.fields))
+            liste = copy.deepcopy(self.fields)
+            for i in range(self.n):
+                for j in range(self.n):
+                    liste[i][j] = liste[i][j].color
+                #print(liste[i])
+            #print(len(liste))
+
+            #self.printboard()
         else:
             for i in range(n):
                 self.fields.append([Field(0, i * n + j) for j in range(n)])
@@ -170,7 +184,6 @@ class Board:
                             self.setFieldColor(x - i, n - 1 - i, 2)
                     else:
                         if self.getFieldColor(n - 1 - i, 9 - (x - n + i + 1)) == 0:
-                            print(self.fields[9 - (x - n + i + 1)][n - 1 - i].index)
                             self.setFieldColor(n - 1 - i, 9 - (x - n + i + 1), 2)
             elif self.count(x, 2, 'd_ul') == self.diagonalen_ul_or[x]:
                 for i in range(-abs(10 - x - 1) + 10):
@@ -183,7 +196,7 @@ class Board:
 
 
     def check(self):
-        print(1)
+        #print(1)
         for y in range(len(self.spalten)):
             if self.count(y, 1, 's') > self.n - self.spalten[y]:
                 return True
@@ -203,7 +216,7 @@ class Board:
                 return True
 
         for x in range(len(self.diagonalen_ul_or)):
-            if self.count(x, 0, 'd_ul') > self.n - self.diagonalen_ul_or[x]:
+            if self.count(x, 1, 'd_ul') > self.n - self.diagonalen_ul_or[x]:
                 return True
             elif self.count(x, 2, 'd_ul') > self.diagonalen_ul_or[x]:
                 return True
@@ -240,6 +253,7 @@ class Board:
 
     def solvestep(self):
         if self.finish():
+            print("f")
             if not self.check():
                 result = copy.deepcopy(self.fields)
                 for i in range(self.n):
@@ -249,13 +263,18 @@ class Board:
 
 
         temp1 = 1
+        #print(id(temp1))
         temp2 = 0
 
+        #self.printboard()
+
         while temp1 != temp2 and not self.check():
+            #print(3, temp1 != temp2)
             temp1 = copy.deepcopy(self.fields)
             for i in range(self.n):
                 for j in range(self.n):
                     temp1[i][j] = temp1[i][j].color
+            #print(id(temp1))
 
             self.work()
 
@@ -265,7 +284,7 @@ class Board:
                     temp2[i][j] = temp2[i][j].color
 
         if not self.check():
-            print(2)
+            #print(2)
             solutions = []
             prev = copy.deepcopy(self.fields)
             for i in range(self.n):
@@ -273,17 +292,28 @@ class Board:
                     prev[i][j] = prev[i][j].color
 
             prev[self.search()[0]][self.search()[1]] = 1
+            #print(prev)
             next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
+            #next1.printboard()
             lösungen_next1 = next1.solvestep()
-            for i in range(len(lösungen_next1)):
-                solutions.append(i)
+            if type(lösungen_next1) == list:
+                #print("hi")
+                for i in range(len(lösungen_next1)):
+                    solutions.append(i)
 
             prev[self.search()[0]][self.search()[1]] = 2
             next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
             lösungen_next2 = next2.solvestep()
-            for i in range(len(lösungen_next2)):
-                solutions.append(i)
+            if isinstance(lösungen_next2, list):
+                #äprint("high")
+                for i in range(len(lösungen_next2)):
+                    solutions.append(i)
+            #print(solutions)
+
             return solutions
+        else:
+            print("end")
+            pass
 
 
 
@@ -297,13 +327,17 @@ zeilen = e.readline().split()
 diagonalen_ol_ur = e.readline().split()
 diagonalen_ul_or = e.readline().split()
 e.close
-brettttt = Board(n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or)
+brettttt = Board(n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, 3)
 
 #brettttt.printindex()
-#brettttt.printboard()
-
-print(brettttt.solvestep())
-
+brettttt.printboard()
+brettttt.work()
+brettttt.work()
+brettttt.work()
+print()
+brettttt.printboard()
+#print(brettttt.solvestep())
+#print(brettttt.check())
 
 
 #t.write(str(brettttt))
