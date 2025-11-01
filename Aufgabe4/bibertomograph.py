@@ -179,9 +179,10 @@ class Board:
                             self.setFieldColor(x - i, (self.n - 1) - (n - 1 - i), 2)
                     else:
                         if x == 12:
-                            print(n + i - (-abs(self.n - x - 1) + self.n))
+                            pass
+                            #print(n + i - (-abs(self.n - x - 1) + self.n))
                         if self.getFieldColor(n - 1 - i, n + i - (-abs(self.n - x - 1) + self.n)) == 0:    #(self.n - 1) - (n - 1 - i)) == 0:
-                            print(2, x)
+                            #print(2, x)
                             self.setFieldColor(n - 1 - i, n + i - (-abs(self.n - x - 1) + self.n), 2)
             elif self.count(x, 2, 'd_ol') == self.diagonalen_ol_ur[x]:
                 for i in range(-abs(self.n - x - 1) + self.n):
@@ -292,24 +293,24 @@ class Board:
             for i in range(self.n):
                 for j in range(self.n):
                     temp2[i][j] = temp2[i][j].color
-            self.printboard()
+            #self.printboard()
 
 
 
         if self.finish():
-            print("f")
+            #print("f")
             if not self.check():
                 result = copy.deepcopy(self.fields)
                 for i in range(self.n):
                     for j in range(self.n):
                         result[i][j] = result[i][j].color
-                print("!!!!!!!!!!!!!")
-                print(result)
-                return list(result)
+                #print("!!!!!!!!!!!!!")
+                #print(result)
+                return [result]
 
 
         if not self.check():
-            print(2)
+            #print(2)
             solutions = []
             prev = copy.deepcopy(self.fields)
             for i in range(self.n):
@@ -337,7 +338,7 @@ class Board:
 
             return solutions
         else:
-            print("end")
+            #print("end")
             pass
 
 
@@ -345,7 +346,7 @@ class Board:
 
 
 
-e = open("tomograph00.txt", 'r')
+e = open("tomograph01.txt", 'r')
 n = int(e.readline())
 spalten = e.readline().split()
 zeilen = e.readline().split()
@@ -361,8 +362,12 @@ brettttt = Board(n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, 3)
 #brettttt.work()
 #print()
 #brettttt.printboard()
-print(brettttt.solvestep())
-#print(brettttt.check())
+
+sols = brettttt.solvestep()
+for i in sols:
+    for j in i:
+        print(j)
+    print()
 
 
 #t.write(str(brettttt))
