@@ -1,17 +1,20 @@
 import copy
+import os
+
 
 class Field:
     color = 0  # 0 -> unknown 1 -> no wood shavings 2 -> with wood shavings 3 -> knowingly unknown
     index = 0
     probability = 0
 
-    def __init__(self, col=0, index = 0, probability = 0):
+    def __init__(self, col=0, index=0, probability=0):
         self.index = index
         self.color = col
         self.probability = probability
 
-    #def __int__(self):
+    # def __int__(self):
     #    return int(self.color)
+
 
 class Board:
     fields = []
@@ -24,22 +27,22 @@ class Board:
 
     def __init__(self, n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, prev):
         self.fields = []
-        #print(n)
+        # print(n)
         if isinstance(prev, list):
-            #print(prev)
+            # print(prev)
             for i in range(n):
-                #print(prev[i])
+                # print(prev[i])
                 self.fields.append([Field(prev[i][j], i * n + j) for j in range(n)])
-            #print()
-            #print(len(self.fields))
+            # print()
+            # print(len(self.fields))
             liste = copy.deepcopy(self.fields)
             for i in range(self.n):
                 for j in range(self.n):
                     liste[i][j] = liste[i][j].color
-                #print(liste[i])
-            #print(len(liste))
+                # print(liste[i])
+            # print(len(liste))
 
-            #self.printboard()
+            # self.printboard()
         else:
             for i in range(n):
                 self.fields.append([Field(0, i * n + j) for j in range(n)])
@@ -112,10 +115,10 @@ class Board:
         elif zs == 'd_ul':
             list = []
             for i in range(-abs(self.n - x - 1) + self.n):
-                if x < n:
-                    list.append(self.fields[n - 1 - i][x - i])
+                if x < self.n:
+                    list.append(self.fields[self.n - 1 - i][x - i])
                 else:
-                    list.append(self.fields[(self.n - 1) - (x - n + i + 1)][n - 1 - i])
+                    list.append(self.fields[(self.n - 1) - (x - self.n + i + 1)][self.n - 1 - i])
             for i in range(len(list)):
                 list[i] = list[i].color
             for i in list:
@@ -126,10 +129,10 @@ class Board:
         elif zs == 'd_ol':
             list = []
             for i in range(-abs(self.n - x - 1) + self.n):
-                if x < n:
-                    list.append(self.fields[(self.n - 1) - (n - 1 - i)][x - i])
+                if x < self.n:
+                    list.append(self.fields[(self.n - 1) - (self.n - 1 - i)][x - i])
                 else:
-                    list.append(self.fields[x - n + i + 1][n - 1 - i])
+                    list.append(self.fields[x - self.n + i + 1][self.n - 1 - i])
             for i in range(len(list)):
                 list[i] = list[i].color
             for i in list:
@@ -143,12 +146,12 @@ class Board:
                 for x in range(self.n):
                     if self.getFieldColor(y, x) == 0:
                         self.setFieldColor(y, x, 2)
-            elif self.count(y, 2, 's') ==  self.spalten[y]:
+            elif self.count(y, 2, 's') == self.spalten[y]:
                 for x in range(self.n):
                     if self.getFieldColor(y, x) == 0:
                         self.setFieldColor(y, x, 1)
-        #self.printboard()
-        #print("nach spalten")
+        # self.printboard()
+        # print("nach spalten")
 
         for x in range(len(self.zeilen)):
             if self.count(x, 0, 'z') == self.zeilen[x] - self.count(x, 2, 'z'):
@@ -159,65 +162,65 @@ class Board:
                 for y in range(self.n):
                     if self.getFieldColor(y, x) == 0:
                         self.setFieldColor(y, x, 1)
-        #self.printboard()
-        #print("nach zeilen")
+        # self.printboard()
+        # print("nach zeilen")
 
         for x in range(len(self.diagonalen_ol_ur)):
             if x == 11:
                 pass
-                #self.printboard()
-                #print("vor 11")
-                #print(self.count(x, 0, 'd_ol'), self.diagonalen_ol_ur[x], self.count(x, 2, 'd_ol'))
+                # self.printboard()
+                # print("vor 11")
+                # print(self.count(x, 0, 'd_ol'), self.diagonalen_ol_ur[x], self.count(x, 2, 'd_ol'))
             if x == 12:
                 pass
-                #self.printboard()
-                #print("nach 11")
+                # self.printboard()
+                # print("nach 11")
             if self.count(x, 0, 'd_ol') == self.diagonalen_ol_ur[x] - self.count(x, 2, 'd_ol'):
                 for i in range(-abs(self.n - x - 1) + self.n):
-                    if x < n:
-                        if self.getFieldColor(x - i, (self.n - 1) - (n - 1 - i)) == 0:
-                            self.setFieldColor(x - i, (self.n - 1) - (n - 1 - i), 2)
+                    if x < self.n:
+                        if self.getFieldColor(x - i, (self.n - 1) - (self.n - 1 - i)) == 0:
+                            self.setFieldColor(x - i, (self.n - 1) - (self.n - 1 - i), 2)
                     else:
                         if x == 12:
                             pass
-                            #print(n + i - (-abs(self.n - x - 1) + self.n))
-                        if self.getFieldColor(n - 1 - i, n + i - (-abs(self.n - x - 1) + self.n)) == 0:    #(self.n - 1) - (n - 1 - i)) == 0:
-                            #print(2, x)
-                            self.setFieldColor(n - 1 - i, n + i - (-abs(self.n - x - 1) + self.n), 2)
+                            # print(n + i - (-abs(self.n - x - 1) + self.n))
+                        if self.getFieldColor(self.n - 1 - i, self.n + i - (
+                                -abs(self.n - x - 1) + self.n)) == 0:  # (self.n - 1) - (n - 1 - i)) == 0:
+                            # print(2, x)
+                            self.setFieldColor(self.n - 1 - i, self.n + i - (-abs(self.n - x - 1) + self.n), 2)
             elif self.count(x, 2, 'd_ol') == self.diagonalen_ol_ur[x]:
                 for i in range(-abs(self.n - x - 1) + self.n):
-                    if x < n:
-                        if self.getFieldColor(x - i, (self.n - 1) - (n - 1 - i)) == 0:
-                            self.setFieldColor(x - i, (self.n - 1) - (n - 1 - i), 1)
+                    if x < self.n:
+                        if self.getFieldColor(x - i, (self.n - 1) - (self.n - 1 - i)) == 0:
+                            self.setFieldColor(x - i, (self.n - 1) - (self.n - 1 - i), 1)
                     else:
-                        if self.getFieldColor(n - 1 - i, x - n + i + 1) == 0:
-                            self.setFieldColor(n - 1 - i, x - n + i + 1, 1)
-        #self.printboard()
-        #print("nach dia_ol_ur")
+                        if self.getFieldColor(self.n - 1 - i, x - self.n + i + 1) == 0:
+                            self.setFieldColor(self.n - 1 - i, x - self.n + i + 1, 1)
+        # self.printboard()
+        # print("nach dia_ol_ur")
 
         for x in range(len(self.diagonalen_ul_or)):
             if self.count(x, 0, 'd_ul') == self.diagonalen_ul_or[x] - self.count(x, 2, 'd_ul'):
                 for i in range(-abs(self.n - x - 1) + self.n):
-                    if x < n:
-                        if self.getFieldColor(x - i, n - 1 - i) == 0:
-                            self.setFieldColor(x - i, n - 1 - i, 2)
+                    if x < self.n:
+                        if self.getFieldColor(x - i, self.n - 1 - i) == 0:
+                            self.setFieldColor(x - i, self.n - 1 - i, 2)
                     else:
-                        if self.getFieldColor(n - 1 - i, (self.n - 1) - (x - n + i + 1)) == 0:
-                            self.setFieldColor(n - 1 - i, (self.n - 1) - (x - n + i + 1), 2)
+                        if self.getFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1)) == 0:
+                            self.setFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1), 2)
             elif self.count(x, 2, 'd_ul') == self.diagonalen_ul_or[x]:
                 for i in range(-abs(self.n - x - 1) + self.n):
-                    if x < n:
-                        if self.getFieldColor(x - i, n - 1 - i) == 0:
-                            self.setFieldColor(x - i, n - 1 - i, 1)
+                    if x < self.n:
+                        if self.getFieldColor(x - i, self.n - 1 - i) == 0:
+                            self.setFieldColor(x - i, self.n - 1 - i, 1)
                     else:
-                        if self.getFieldColor(n - 1 - i, (self.n - 1) - (x - n + i + 1)) == 0:
-                            self.setFieldColor(n - 1 - i, (self.n - 1) - (x - n + i + 1), 1)
-        #self.printboard()
-        #print("nach dia_ul_or")
-
+                        if self.getFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1)) == 0:
+                            self.setFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1), 1)
+        # self.printboard()
+        # print("nach dia_ul_or")
 
     def check(self):
-        #print(1)
+        # print(1)
         for y in range(len(self.spalten)):
             if self.count(y, 1, 's') > self.n - self.spalten[y]:
                 return True
@@ -247,8 +250,7 @@ class Board:
         for i in range(self.n):
             for j in range(self.n):
                 if self.getFieldColor(j, i) == 0:
-                    return [i,j]
-
+                    return [i, j]
 
     def finish(self):
         for i in range(self.n):
@@ -257,35 +259,34 @@ class Board:
                     return False
         return True
 
-#    def next(self):
-#        prev = copy.deepcopy(self.fields)
-#        for i in range(self.n):
-#            for j in range(self.n):
-#                prev[i][j] = prev[i][j].color
-#
-#        prev[self.search()[0]][self.search()[1]] = 1
-#        next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
-#
-#        prev[self.search()[0]][self.search()[1]] = 2
-#        next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
-#
-#        return next1.solvestep()
-
+    #    def next(self):
+    #        prev = copy.deepcopy(self.fields)
+    #        for i in range(self.n):
+    #            for j in range(self.n):
+    #                prev[i][j] = prev[i][j].color
+    #
+    #        prev[self.search()[0]][self.search()[1]] = 1
+    #        next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
+    #
+    #        prev[self.search()[0]][self.search()[1]] = 2
+    #        next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
+    #
+    #        return next1.solvestep()
 
     def solvestep(self):
         temp1 = 1
-        #print(id(temp1))
+        # print(id(temp1))
         temp2 = 0
 
-        #self.printboard()
+        # self.printboard()
 
         while temp1 != temp2 and not self.check():
-            #print(3, temp1 != temp2)
+            # print(3, temp1 != temp2)
             temp1 = copy.deepcopy(self.fields)
             for i in range(self.n):
                 for j in range(self.n):
                     temp1[i][j] = temp1[i][j].color
-            #print(id(temp1))
+            # print(id(temp1))
 
             self.work()
 
@@ -293,24 +294,21 @@ class Board:
             for i in range(self.n):
                 for j in range(self.n):
                     temp2[i][j] = temp2[i][j].color
-            #self.printboard()
-
-
+            # self.printboard()
 
         if self.finish():
-            #print("f")
+            # print("f")
             if not self.check():
                 result = copy.deepcopy(self.fields)
                 for i in range(self.n):
                     for j in range(self.n):
                         result[i][j] = result[i][j].color
-                #print("!!!!!!!!!!!!!")
-                #print(result)
+                # print("!!!!!!!!!!!!!")
+                # print(result)
                 return [result]
 
-
         if not self.check():
-            #print(2)
+            # print(2)
             solutions = []
             prev = copy.deepcopy(self.fields)
             for i in range(self.n):
@@ -318,12 +316,12 @@ class Board:
                     prev[i][j] = prev[i][j].color
 
             prev[self.search()[0]][self.search()[1]] = 1
-            #print(prev)
+            # print(prev)
             next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
-            #next1.printboard()
+            # next1.printboard()
             lösungen_next1 = next1.solvestep()
             if isinstance(lösungen_next1, list):
-                #print("hi")
+                # print("hi")
                 for i in lösungen_next1:
                     solutions.append(i)
 
@@ -331,44 +329,56 @@ class Board:
             next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
             lösungen_next2 = next2.solvestep()
             if isinstance(lösungen_next2, list):
-                #print("high")
+                # print("high")
                 for i in lösungen_next2:
                     solutions.append(i)
-            #print(solutions)
+            # print(solutions)
 
             return solutions
         else:
-            #print("end")
+            # print("end")
             pass
 
 
+def mainm(file):
+    with open(file, 'r') as e:
+        n = int(e.readline())
+        spalten = e.readline().split()
+        zeilen = e.readline().split()
+        diagonalen_ol_ur = e.readline().split()
+        diagonalen_ul_or = e.readline().split()
+
+    brettttt = Board(n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, 3)
+    return brettttt
 
 
+# brettttt.printindex()
+# brettttt.printboard()
+# brettttt.work()
+# brettttt.work()
+# brettttt.work()
+# print()
+# brettttt.printboard()
 
+for f in os.listdir("."):
+    if not f.endswith(".txt"): continue
+    sols = mainm(f).solvestep()
+    print(f)
+    for i in range(len(sols)):
+        print(f"Variante {i+1}:")
+        for j in sols[i]:
+            schtring = ""
+            for c in j:
+                if c == 2:
+                    schtring += "██"
+                elif c == 0:
+                    schtring += "  "
+                elif c == 1:
+                    schtring += "░░"
+                elif c == 3:
+                    schtring += "? "
+            print(schtring)
+        print()
 
-e = open("tomograph01.txt", 'r')
-n = int(e.readline())
-spalten = e.readline().split()
-zeilen = e.readline().split()
-diagonalen_ol_ur = e.readline().split()
-diagonalen_ul_or = e.readline().split()
-e.close
-brettttt = Board(n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, 3)
-
-#brettttt.printindex()
-#brettttt.printboard()
-#brettttt.work()
-#brettttt.work()
-#brettttt.work()
-#print()
-#brettttt.printboard()
-
-sols = brettttt.solvestep()
-for i in sols:
-    for j in i:
-        print(j)
-    print()
-
-
-#t.write(str(brettttt))
-#t.close()
+# t.write(str(brettttt))
+# t.close()
