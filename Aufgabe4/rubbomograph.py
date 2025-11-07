@@ -1,27 +1,29 @@
 import copy
 import os
 from multiprocessing import Pool, cpu_count
+from webbrowser import Error
+
+
 # from tqdm import tqdm
 
 
-class Field:
-    color = 0  # 0 -> unknown 1 -> no wood shavings 2 -> with wood shavings 3 -> knowingly unknown
-    index = 0
-    probability = 0
-
-    def __init__(self, col=0, index=0, probability=0):
-        self.index = index
-        self.color = col
-        self.probability = probability
+# class Field:
+#     color = 0  # 0 -> unknown 1 -> no wood shavings 2 -> with wood shavings 3 -> knowingly unknown
+#     index = 0
+#     probability = 0
+#
+#     def __init__(self, col=0, index=0, probability=0):
+#         self.index = index
+#         self.color = col
+#         self.probability = probability
 
     # def __int__(self):
     #    return int(self.color)
 
 
 class Board:
-    fields = []
+    fields = [] # 0 -> unknown 1 -> no wood shavings 2 -> with wood shavings 3 -> knowingly unknown 4 -> no wood shavings, certain (for end) 5 -> with wood shavings, certain (for end)
     n = 0
-    numbers = []
     spalten = []
     zeilen = []
     diagonalen_ol_ur = []
@@ -29,71 +31,42 @@ class Board:
 
     def __init__(self, n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, prev):
         self.fields = []
-        # print(n)
         if isinstance(prev, list):
-            # print(prev)
             for e in range(n):
-                # print(prev[i])
-                self.fields.append([Field(prev[e][ee], e * n + ee) for ee in range(n)])
-            # print()
-            # print(len(self.fields))
-            liste = [[r.color for r in row] for row in self.fields]
-            # for i in range(self.n):
-            #    for j in range(self.n):
-            #        liste[i][j] = liste[i][j].color
-            # print(liste[i])
-            # print(len(liste))
+                self.fields.append(prev[e].copy())     # ([Field(prev[e][ee], e * n + ee) for ee in range(n)])
 
-            # self.printboard()
         else:
             for e in range(n):
-                self.fields.append([Field(0, e * n + ee) for ee in range(n)])
+                self.fields.append([0] * n)
 
         self.n = n
         self.spalten = [int(x) for x in spalten]
         self.zeilen = [int(x) for x in zeilen]
         self.diagonalen_ol_ur = [int(x) for x in diagonalen_ol_ur]
         self.diagonalen_ul_or = [int(x) for x in diagonalen_ul_or]
-        self.numbers = [self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or]
 
-    def __str__(self):
-        liste = []
-        for e in range(self.n):
-            for ee in range(self.n):
-                liste.append(str(self.fields[e][ee]))
-        return str(liste) + str(self.numbers)
+    # def __str__(self):
+    #     liste = []
+    #     for e in range(self.n):
+    #         for ee in range(self.n):
+    #             liste.append(str(self.fields[e][ee]))
+    #     return str(liste) + str(self.numbers)
 
     def printboard(self):
-        liste = [[r.color for r in row] for row in self.fields]
-        # for i in range(self.n):
-        #    for j in range(self.n):
-        #        list[i][j] = list[i][j].color
-        print(liste[i])
+        liste = [[r for r in row] for row in self.fields]
+        print(*(x for x in liste), sep="\n")
         print()
         print(self.spalten)
         print(self.zeilen)
         print(self.diagonalen_ol_ur)
         print(self.diagonalen_ul_or)
-
-    def printindex(self):
-        liste = [[r.index for r in row] for row in self.fields]
-        # for i in range(self.n):
-        #    for j in range(self.n):
-        #        list[i][j] = list[i][j].index
-        for k in range(self.n):
-            print(liste[k])
+        print()
 
     def getFieldColor(self, x, y):
-        return self.fields[y][x].color
-
-    def setFieldColor(self, x, y, col):
-        self.fields[y][x].color = int(col)
-
-    def getField(self, x, y):
         return self.fields[y][x]
 
-    def setField(self, x, y, field):
-        self.fields[y][x] = field
+    def setFieldColor(self, x, y, col):
+        self.fields[y][x] = int(col)
 
     def count(self, x, col=0, zs='z'):
         """
@@ -103,11 +76,11 @@ class Board:
         n = self.n
         if zs == 'z':
             # row x
-            return sum(1 for f in self.fields[x] if f.color == col)
+            return sum(1 for f in self.fields[x] if f == col)
 
         elif zs == 's':
             # column x
-            return sum(1 for row in self.fields if row[x].color == col)
+            return sum(1 for row in self.fields if row[x] == col)
 
         elif zs == 'd_ul':
             total = 0
@@ -122,7 +95,7 @@ class Board:
                     fx = n - 1 - e
                 # defensive: optional, entferne wenn sicher nie out-of-range
                 # if not (0 <= fy < n and 0 <= fx < n): continue
-                if self.fields[fy][fx].color == col:
+                if self.fields[fy][fx] == col:
                     total += 1
             return total
 
@@ -139,12 +112,12 @@ class Board:
                     fy, fx = x - n + e + 1, n - 1 - e
                 # defensive: optional, entferne wenn sicher nie out-of-range
                 # if not (0 <= fy < n and 0 <= fx < n): continue
-                if self.fields[fy][fx].color == col:
+                if self.fields[fy][fx] == col:
                     total += 1
             return total
 
         else:
-            return 0
+            raise Exception
 
     def work(self):
         for y in range(len(self.spalten)):
@@ -156,8 +129,6 @@ class Board:
                 for x in range(self.n):
                     if self.getFieldColor(y, x) == 0:
                         self.setFieldColor(y, x, 1)
-        # self.printboard()
-        # print("nach spalten")
 
         for x in range(len(self.zeilen)):
             if self.count(x, 0, 'z') == self.zeilen[x] - self.count(x, 2, 'z'):
@@ -168,28 +139,13 @@ class Board:
                 for y in range(self.n):
                     if self.getFieldColor(y, x) == 0:
                         self.setFieldColor(y, x, 1)
-        # self.printboard()
-        # print("nach zeilen")
-
         for x in range(len(self.diagonalen_ol_ur)):
-            if x == 11:
-                pass
-                # self.printboard()
-                # print("vor 11")
-                # print(self.count(x, 0, 'd_ol'), self.diagonalen_ol_ur[x], self.count(x, 2, 'd_ol'))
-            if x == 12:
-                pass
-                # self.printboard()
-                # print("nach 11")
             if self.count(x, 0, 'd_ol') == self.diagonalen_ol_ur[x] - self.count(x, 2, 'd_ol'):
                 for i in range(-abs(self.n - x - 1) + self.n):
                     if x < self.n:
                         if self.getFieldColor(x - i, (self.n - 1) - (self.n - 1 - i)) == 0:
                             self.setFieldColor(x - i, (self.n - 1) - (self.n - 1 - i), 2)
                     else:
-                        if x == 12:
-                            pass
-                            # print(n + i - (-abs(self.n - x - 1) + self.n))
                         if self.getFieldColor(self.n - 1 - i, self.n + i - (
                                 -abs(self.n - x - 1) + self.n)) == 0:  # (self.n - 1) - (n - 1 - i)) == 0:
                             # print(2, x)
@@ -202,8 +158,6 @@ class Board:
                     else:
                         if self.getFieldColor(self.n - 1 - i, x - self.n + i + 1) == 0:
                             self.setFieldColor(self.n - 1 - i, x - self.n + i + 1, 1)
-        # self.printboard()
-        # print("nach dia_ol_ur")
 
         for x in range(len(self.diagonalen_ul_or)):
             if self.count(x, 0, 'd_ul') == self.diagonalen_ul_or[x] - self.count(x, 2, 'd_ul'):
@@ -222,11 +176,18 @@ class Board:
                     else:
                         if self.getFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1)) == 0:
                             self.setFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1), 1)
-        # self.printboard()
-        # print("nach dia_ul_or")
+
+    def working(self):
+        temp1 = 1
+        temp2 = 0
+        while temp1 != temp2 and not self.check():
+            temp1 = [[r for r in row] for row in self.fields]
+
+            self.work()
+
+            temp2 = [[r for r in row] for row in self.fields]
 
     def check(self):
-        # print(1)
         for y in range(len(self.spalten)):
             if self.count(y, 1, 's') > self.n - self.spalten[y]:
                 return True
@@ -265,87 +226,83 @@ class Board:
                     return False
         return True
 
-    #    def next(self):
-    #        prev = copy.deepcopy(self.fields)
-    #        for i in range(self.n):
-    #            for j in range(self.n):
-    #                prev[i][j] = prev[i][j].color
-    #
-    #        prev[self.search()[0]][self.search()[1]] = 1
-    #        next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
-    #
-    #        prev[self.search()[0]][self.search()[1]] = 2
-    #        next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
-    #
-    #        return next1.solvestep()
 
-    def solvestep(self):
-        temp1 = 1
-        # print(id(temp1))
-        temp2 = 0
-
+    def solvestep(self, solution):
         # self.printboard()
 
-        while temp1 != temp2 and not self.check():
-            # print(3, temp1 != temp2)
-            temp1 = [[r.color for r in row] for row in self.fields]
-            # for i in range(self.n):
-            #    for j in range(self.n):
-            #        temp1[i][j] = temp1[i][j].color
-            # print(id(temp1))
-
-            self.work()
-
-            temp2 = [[r.color for r in row] for row in self.fields]
-            # for i in range(self.n):
-            #    for j in range(self.n):
-            #        temp2[i][j] = temp2[i][j].color
-            # self.printboard()
+        self.working()
 
         if self.finish():
-            # print("f")
             if not self.check():
-                result = [[r.color for r in row] for row in self.fields]
-                # for i in range(self.n):
-                #     for j in range(self.n):
-                #         result[i][j] = result[i][j].color
-                # print("!!!!!!!!!!!!!")
-                # print(result)
+                # sols2check(temp2)
+                # return [temp2]
 
-                sols2check(result)
-                return [result]
+                for i in range(self.n):
+                    for j in range(self.n):
+                        if solution[i][j] == 0:
+                            solution[i][j] = self.fields[i][j]
+                        elif solution[i][j] != self.fields[i][j] and solution[i][j] in [1, 2]:
+                            solution[i][j] = 3
+                return solution
+
 
         if not self.check():
-            # print(2)
             solutions = []
-            prev = [[r.color for r in row] for row in self.fields]
-            # for i in range(self.n):
-            #    for j in range(self.n):
-            #        prev[i][j] = prev[i][j].color
 
-            prev[self.search()[0]][self.search()[1]] = 1
-            # print(prev)
-            next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
-            # next1.printboard()
-            loesungen_next1 = next1.solvestep()
-            if isinstance(loesungen_next1, list):
-                # print("hi")
-                for e in loesungen_next1:
-                    solutions.append(e)
+            temp2 = [[r for r in row] for row in self.fields]
 
-            prev[self.search()[0]][self.search()[1]] = 2
-            next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, prev)
-            loesungen_next2 = next2.solvestep()
-            if isinstance(loesungen_next2, list):
-                # print("high")
-                for e in loesungen_next2:
-                    solutions.append(e)
-            # print(solutions)
+            searched = self.search()
+            temp2[searched[0]][searched[1]] = 1
+            next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
+            sol_next1 = next1.solvestep(solution)
+            # loesungen_next1 = next1.solvestep()
+            # if isinstance(loesungen_next1, list):
+            #     for e in loesungen_next1:
+            #         solutions.append(e)
 
-            return solutions
-        else:
-            # print("end")
-            pass
+            temp2[searched[0]][searched[1]] = 2
+            next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
+            sol_next2 = next2.solvestep(solution)
+            # loesungen_next2 = next2.solvestep()
+            # if isinstance(loesungen_next2, list):
+            #     for e in loesungen_next2:
+            #         solutions.append(e)
+
+            for i in range(self.n):
+                for j in range(self.n):
+                    if solution[i][j] == 0:
+                        if sol_next2[i][j] != sol_next1[i][j] and not 0 in [sol_next2[i][j], sol_next1[i][j]]:
+                            solution[i][j] = 3
+                        elif sol_next2[i][j] == sol_next1[i][j]:
+                            solution[i][j] = sol_next2[i][j]
+                        elif sol_next1[i][j] == 0:
+                            solution[i][j] = sol_next2[i][j]
+                        else:
+                            solution[i][j] = sol_next1[i][j]
+                    elif solution[i][j] in [3, 4, 5]:
+                        continue
+
+                    else: # solution[i][j] in [1,2]
+                        if sol_next2[i][j] == sol_next1[i][j] and sol_next2[i][j]  not in [0, solution[i][j]]:
+                            solution[i][j] = 3
+
+                        elif sol_next2[i][j] == 0:
+                            if solution[i][j] != sol_next1[i][j]:
+                                solution[i][j] = 3
+                        elif sol_next1[i][j] == 0:
+                            if solution[i][j] != sol_next2[i][j]:
+                                solution[i][j] = 3
+
+                        elif sol_next2[i][j] != sol_next1[i][j]:
+                            solution[i][j] = 3
+
+
+
+
+            return solution
+
+        return [[0] * self.n] * self.n
+
 
 
 def mainm(file):
@@ -360,17 +317,11 @@ def mainm(file):
     return brettttt
 
 
-# brettttt.printindex()
-# brettttt.printboard()
-# brettttt.work()
-# brettttt.work()
-# brettttt.work()
-# print()
-# brettttt.printboard()
 
 def solve_file(f):
     if not f.endswith(".txt"):
         return None
+    # sol = [[0] * n] * n
     print(f"Starte {f}...", flush=True)
     sols = mainm(f).solvestep()
     result_str = f"{f}\n"
@@ -383,10 +334,10 @@ def solve_file(f):
     print(f"Fertig mit {f}!", flush=True)
     return result_str
 
-def sols2check(sol):
-    for i in sols2:
-        if i == sol:
-            raise Exception("Wiederholung!")
+# def sols2check(sol):
+#     for i in sols2:
+#         if i == sol:
+#             raise Exception("Wiederholung!")
 
 
 if __name__ == "__main__":
@@ -398,8 +349,8 @@ if __name__ == "__main__":
     #         if res:
     #             print(res, flush=True)
 
-    sols2 = []
-    print(solve_file("tomograph10.txt"))
+    # sols2 = []
+    print(solve_file("tomograph09.txt"))
 
 # t.write(str(brettttt))
 # t.close()
