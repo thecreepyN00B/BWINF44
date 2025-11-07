@@ -1,36 +1,49 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"sort"
 	"strconv"
-	"strings"
 )
 
-var Aufgabe string = "4 Kartoffel Zwiebel Möhre Reis 4 Kartoffel Zwiebel Möhre Kartoffel Zwiebel Reis Kartoffel Möhre Reis Zwiebel Möhre Reis"
+func einlesenAufgabe(file string) ([]string, [][]string) {
 
-// BERMERKUNGEN IN GENERATEEINFACHBESSER; MIT NOCH ZU MACHENDEN SACHEN
+	zutaten := []string{}
+	gerichte := [][]string{}
 
-// -> hier werden Verbesserungen vorgenommen die hier kommentiert werden
+	r, err := os.Open(file)
 
-func einlesenAufgabe(Aufgabe string) ([]string, [][]string) {
-	var a int = 1
-	Zutaten := []string{}
-	Gerichte := [][]string{}
-	teile := strings.Split(Aufgabe, " ")
-	for a < len(teile) {
-		if _, err := strconv.Atoi(teile[a]); err == nil {
-			break
-		}
-		Zutaten = append(Zutaten, teile[a])
-		a += 1
+	if err != nil {
+		panic(err)
 	}
-	a += 1
-	for a < len(teile) {
-		Gerichte = append(Gerichte, teile[a:a+3])
-		a += 3
+
+	defer r.Close()
+
+	scanner := bufio.NewScanner(r)
+
+	//	scanner.Split(bufio.ScanWords)
+
+	scanner.Scan()
+	anzahlz, _ := strconv.Atoi(scanner.Text())
+
+	for range anzahlz {
+		scanner.Scan()
+		zutaten = append(zutaten, scanner.Text())
 	}
-	return Zutaten, Gerichte
+
+	scanner.Scan()
+	anzahlg, _ := strconv.Atoi(scanner.Text())
+
+	for range anzahlg {
+		scanner.Scan()
+		hilf := []string{}
+		hilf = append(hilf, scanner.Text())
+		gerichte = append(gerichte, hilf)
+	}
+	fmt.Println(zutaten, gerichte)
+	return zutaten, gerichte
 }
 
 func einschraenkungenbeimgenerieren(kombi []string) bool {
@@ -106,11 +119,9 @@ func erfuelltegerichte(kombi []string, Gerichte [][]string) int {
 }
 
 func solve() {
-	b := 12 // jeden Monat max. 1 Gericht -> max. 12 Gerichte pro Jahr
-	_, y := einlesenAufgabe(Aufgabe)
-	b = min(b, len(y)) // b ist default 12, wenn weniger Gerichte gefordert werden, die Anzahl der Gerichte
-
-	Zutaten, Gerichte := einlesenAufgabe(Aufgabe)
+	b := 12
+	Zutaten, Gerichte := einlesenAufgabe("bauern1.txt")
+	b = min(b, len(Gerichte))
 
 	for i := 0; i < b; i++ {
 		if generate(Zutaten, []string{}, 0, Gerichte, b-i) {
@@ -119,8 +130,6 @@ func solve() {
 	}
 }
 
-// EINSCHRAENKUNGEN BEIM GENERIEREN NUR BEI ERSTEM DURCHLAUF
-
 func generate(all []string, current []string, depth int, Gerichte [][]string, fehlertoleranz int) bool {
 	if depth == 12 {
 		if erfuelltegerichte(current, Gerichte) >= fehlertoleranz {
@@ -128,12 +137,12 @@ func generate(all []string, current []string, depth int, Gerichte [][]string, fe
 			fmt.Println(Ausgabe)
 			return true
 		}
-		return false // Weil bei depth == 12 unbedingt die Rekursion beendet werden muss, und ohne return false läuft sie einfach weiter und versucht weiter zu verzweigen — obwohl schon 12 Elemente erreicht sind — was zu einer endlosen Rekursion führt.(Chat)
+		return false
 	}
 	for _, val := range all {
 		next := append(current, val)
 
-		if einschraenkungenbeimgenerieren(next) {
+		if einschraenkungenbeimgenerieren(next) || fehlertoleranz < 12 {
 			if generate(all, next, depth+1, Gerichte, fehlertoleranz) {
 				return true
 			}
