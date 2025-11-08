@@ -13,7 +13,7 @@ func main() {
 	figures, tacts = readFigures("choreo01.txt")
 
 	choreos := getChoreos([]*Figure{}, startlineup)
-	
+
 	fmt.Println("Mögliche Choreographien: ")
 	printChoreos(choreos)
 	if len(choreos) > 1 {
@@ -27,7 +27,7 @@ func main() {
 		printChoreo(mostDistance(choreos))
 		fmt.Println("Möglichst kleine von Tänzern zurückgelegte Strecke: ")
 		printChoreo(leastDistance(choreos))
-		
+
 	}
 
 }
@@ -93,18 +93,18 @@ func readFigures(file string) ([]*Figure, int) {
 }
 
 func useFigure(fig *Figure, input string) string {
-	end := ""
+	output := ""
 
 	for i := range len(fig.endpos) {
 		for j := range len(startlineup) {
 			if fig.endpos[i] == startlineup[j] {
-				end += string(input[j]) // Ist das Gleiche wie end[i] = input[j]
+				output += string(input[j]) // Ist im Prinzip das Gleiche wie output[i] = input[j]
 				break
 			}
 		}
 	}
 
-	return end
+	return output
 }
 
 func getChoreos(usedFigures []*Figure, lineup string) [][]*Figure {
@@ -236,10 +236,10 @@ func printChoreos(choreos [][]*Figure) {
 		fmt.Printf("%d: ", i+1)
 		for j, p := range a {
 			if j != len(a)-1 {
-			fmt.Printf("%s | ", *p)
-		} else {
-			fmt.Printf("%s", *p)
-		}
+				fmt.Printf("%s | ", *p)
+			} else {
+				fmt.Printf("%s", *p)
+			}
 		}
 		fmt.Print("\n")
 	}
