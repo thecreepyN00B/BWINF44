@@ -1,8 +1,10 @@
 import copy
 import os
+import sys
 from multiprocessing import Pool, cpu_count
 from webbrowser import Error
 
+sys.setrecursionlimit(1052)
 
 # from tqdm import tqdm
 
@@ -286,7 +288,9 @@ class Board:
         self.working()
 
         if self.finish():
+            # print(1)
             if not self.check():
+                # print(2)
                 # sols2check(temp2)
                 # return [temp2]
 
@@ -296,9 +300,12 @@ class Board:
                             solution[i][j] = self.fields[i][j]
                         elif solution[i][j] != self.fields[i][j] and solution[i][j] in [1, 2]:
                             solution[i][j] = 3
+                # print(*(x for x in solution), sep="\n")
                 # print(2)
                 # print(*(x for x in solution), sep = "\n")
                 # print()
+                if solution_finished():
+                    return True
 
                 s_12 = search_12in_solution()
                 # print(s_12)
@@ -311,26 +318,18 @@ class Board:
                     # print(5)
                     # print(*(x for x in solution), sep= "\n")
                     if solution_finished():
-                        print(4)
-                        self.printboard()
+                        # print(3)
                         break
                     s_12 = search_12in_solution()
                     temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
                     temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
                     next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or,temp12)
 
-
-                # s_12 = search_12in_solution()
-                # # print(s_12)
-                # temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
-                # temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
-                # next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp12)
-                # if not next12.onestep():
-                #     solution[s_12[0]][s_12[1]] += 3
                 return True
 
 
         if not self.check():
+            # print(6)
 
             temp2 = [[r for r in row] for row in self.fields]
 
@@ -339,13 +338,19 @@ class Board:
             temp2[searched[0]][searched[1]] = 2
             next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
             is_possible = next1.onestep(searched)
+            # print(is_possible)
+            if not is_possible:
+                temp2[searched[0]][searched[1]] = 1
+                next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
+                is_possible = next1.onestep(searched)
             return is_possible
 
-        elif pos:
-            kopie[pos[0]][pos[1]] = 1
-            next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, kopie)
-            is_possible = next2.onestep()
-            return is_possible
+        # elif pos:
+        #     print(5)
+        #     kopie[pos[0]][pos[1]] = 1
+        #     next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, kopie)
+        #     is_possible = next2.onestep()
+        #     return is_possible
         return False
 
 
@@ -390,13 +395,13 @@ def solve_file(f):
     sol.working()
     global solution
     solution = sol.getFields()
-    print(*(x for x in solution), sep="\n")
+    # print(*(x for x in solution), sep="\n")
     for i in range(len(solution)):
         for j in range(len(solution)):
             if solution[i][j] in [1, 2]:
                 solution[i][j] += 3
-    print()
-    print(*(x for x in solution), sep="\n")
+    # print()
+    # print(*(x for x in solution), sep="\n")
 
     mainm(f).onestep()
     result_str = f"{f}\n"
@@ -417,7 +422,7 @@ def solve_file(f):
 
 if __name__ == "__main__":
     solution = [[]]
-    # files = [f for f in os.listdir(".") if f.endswith(".txt")]
+    files = [f for f in os.listdir(".") if f.endswith(".txt")]
     # print(f"Starte mit {len(files)} Dateien auf {cpu_count()} Kernen...\n")
 
     # with Pool(cpu_count()) as pool:
@@ -426,7 +431,8 @@ if __name__ == "__main__":
     #             print(res, flush=True)
 
     # sols2 = []
-    print(solve_file("tomograph10.txt"))
+    for i in files:
+        print(solve_file(i))
 
 # t.write(str(brettttt))
 # t.close()
