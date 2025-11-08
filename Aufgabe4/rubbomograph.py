@@ -67,6 +67,8 @@ class Board:
 
     def setFieldColor(self, x, y, col):
         self.fields[y][x] = int(col)
+    def getFields(self):
+            return self.fields
 
     def count(self, x, col=0, zs='z'):
         """
@@ -227,8 +229,12 @@ class Board:
         return True
 
 
-    def solvestep(self, solution):
+    def solvestep(self):
         # self.printboard()
+        # print(*(x for x in self.fields), sep= "\n")
+        if solution_finished():
+            # print(*(x for x in solution), sep="\n")
+            return None
 
         self.working()
 
@@ -243,67 +249,123 @@ class Board:
                             solution[i][j] = self.fields[i][j]
                         elif solution[i][j] != self.fields[i][j] and solution[i][j] in [1, 2]:
                             solution[i][j] = 3
-                return solution
+                print(*(x for x in solution), sep = "\n")
+                print()
+                return None
+
+        # if not self.check() and not (any(1 in j for j in solution) or any(1 in j for j in solution)):
+
+            # temp2 = [[r for r in row] for row in self.fields]
+            #
+            # searched = self.search()
+            # # print(searched)
+            # temp2[searched[0]][searched[1]] = 2
+            # next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
+            # next1.firststep()
+            #
+            # temp2[searched[0]][searched[1]] = 1
+            # next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
+            # next2.firststep()
+
+        elif not self.check():
+            s_12 = search_12in_solution()
+            # print(s_12)
+            temp12 = [[r for r in row] for row in self.fields]
+            temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
+            next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp12)
+            next12.onestep()
+
+    def onestep(self, pos = None):
+        if solution_finished():
+            # print(*(x for x in solution), sep="\n")
+            return None
+
+        kopie = [[r for r in row] for row in self.fields]
+
+
+        self.working()
+
+        if self.finish():
+            if not self.check():
+                # sols2check(temp2)
+                # return [temp2]
+
+                for i in range(self.n):
+                    for j in range(self.n):
+                        if solution[i][j] == 0:
+                            solution[i][j] = self.fields[i][j]
+                        elif solution[i][j] != self.fields[i][j] and solution[i][j] in [1, 2]:
+                            solution[i][j] = 3
+                # print(2)
+                # print(*(x for x in solution), sep = "\n")
+                # print()
+
+                s_12 = search_12in_solution()
+                # print(s_12)
+                temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
+                temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
+                next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp12)
+
+                while not next12.onestep():
+                    solution[s_12[0]][s_12[1]] += 3
+                    # print(5)
+                    # print(*(x for x in solution), sep= "\n")
+                    if solution_finished():
+                        print(4)
+                        self.printboard()
+                        break
+                    s_12 = search_12in_solution()
+                    temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
+                    temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
+                    next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or,temp12)
+
+
+                # s_12 = search_12in_solution()
+                # # print(s_12)
+                # temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
+                # temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
+                # next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp12)
+                # if not next12.onestep():
+                #     solution[s_12[0]][s_12[1]] += 3
+                return True
 
 
         if not self.check():
-            solutions = []
 
             temp2 = [[r for r in row] for row in self.fields]
 
             searched = self.search()
-            temp2[searched[0]][searched[1]] = 1
-            next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
-            sol_next1 = next1.solvestep(solution)
-            # loesungen_next1 = next1.solvestep()
-            # if isinstance(loesungen_next1, list):
-            #     for e in loesungen_next1:
-            #         solutions.append(e)
-
+            # print(searched)
             temp2[searched[0]][searched[1]] = 2
-            next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
-            sol_next2 = next2.solvestep(solution)
-            # loesungen_next2 = next2.solvestep()
-            # if isinstance(loesungen_next2, list):
-            #     for e in loesungen_next2:
-            #         solutions.append(e)
+            next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
+            is_possible = next1.onestep(searched)
+            return is_possible
 
-            for i in range(self.n):
-                for j in range(self.n):
-                    if solution[i][j] == 0:
-                        if sol_next2[i][j] != sol_next1[i][j] and not 0 in [sol_next2[i][j], sol_next1[i][j]]:
-                            solution[i][j] = 3
-                        elif sol_next2[i][j] == sol_next1[i][j]:
-                            solution[i][j] = sol_next2[i][j]
-                        elif sol_next1[i][j] == 0:
-                            solution[i][j] = sol_next2[i][j]
-                        else:
-                            solution[i][j] = sol_next1[i][j]
-                    elif solution[i][j] in [3, 4, 5]:
-                        continue
-
-                    else: # solution[i][j] in [1,2]
-                        if sol_next2[i][j] == sol_next1[i][j] and sol_next2[i][j]  not in [0, solution[i][j]]:
-                            solution[i][j] = 3
-
-                        elif sol_next2[i][j] == 0:
-                            if solution[i][j] != sol_next1[i][j]:
-                                solution[i][j] = 3
-                        elif sol_next1[i][j] == 0:
-                            if solution[i][j] != sol_next2[i][j]:
-                                solution[i][j] = 3
-
-                        elif sol_next2[i][j] != sol_next1[i][j]:
-                            solution[i][j] = 3
+        elif pos:
+            kopie[pos[0]][pos[1]] = 1
+            next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, kopie)
+            is_possible = next2.onestep()
+            return is_possible
+        return False
 
 
 
 
-            return solution
-
-        return [[0] * self.n] * self.n
 
 
+def solution_finished():
+    for i in solution:
+        for j in i:
+            if j in [0, 1, 2]:
+                return False
+    # print(*(x for x in solution), sep="\n")
+    return True
+
+def search_12in_solution():
+    for i in range(len(solution)):
+        for j in range(len(solution)):
+            if solution[i][j] in [1, 2]:
+                return [i, j, solution[i][j]]
 
 def mainm(file):
     with open(file, 'r') as e:
@@ -321,16 +383,29 @@ def mainm(file):
 def solve_file(f):
     if not f.endswith(".txt"):
         return None
-    # sol = [[0] * n] * n
+    # solution = [[0] * n] * n
     print(f"Starte {f}...", flush=True)
-    sols = mainm(f).solvestep()
+
+    sol = mainm(f)
+    sol.working()
+    global solution
+    solution = sol.getFields()
+    print(*(x for x in solution), sep="\n")
+    for i in range(len(solution)):
+        for j in range(len(solution)):
+            if solution[i][j] in [1, 2]:
+                solution[i][j] += 3
+    print()
+    print(*(x for x in solution), sep="\n")
+
+    mainm(f).onestep()
     result_str = f"{f}\n"
-    for i, sol in enumerate(sols):
-        result_str += f"Variante {i+1}:\n"
-        for j in sol:
-            schtring = "".join({2:"██", 0:"  ", 1:"░░", 3:"? "}[c] for c in j)
-            result_str += schtring + "\n"
-        result_str += "\n"
+    # print(*(x for x in solution), sep = "\n")
+
+    for j in solution:
+        schtring = "".join({2:"██", 0:"  ", 1:"░░", 3:"? ", 4:"░░", 5:"██"}[c] for c in j)
+        result_str += schtring + "\n"
+
     print(f"Fertig mit {f}!", flush=True)
     return result_str
 
@@ -341,6 +416,7 @@ def solve_file(f):
 
 
 if __name__ == "__main__":
+    solution = [[]]
     # files = [f for f in os.listdir(".") if f.endswith(".txt")]
     # print(f"Starte mit {len(files)} Dateien auf {cpu_count()} Kernen...\n")
 
@@ -350,7 +426,7 @@ if __name__ == "__main__":
     #             print(res, flush=True)
 
     # sols2 = []
-    print(solve_file("tomograph09.txt"))
+    print(solve_file("tomograph10.txt"))
 
 # t.write(str(brettttt))
 # t.close()
