@@ -3,6 +3,8 @@ import os
 import sys
 from multiprocessing import Pool, cpu_count
 from webbrowser import Error
+from time import time
+start = time()
 
 sys.setrecursionlimit(1052)
 
@@ -436,3 +438,4 @@ if __name__ == "__main__":
 
 # t.write(str(brettttt))
 # t.close()
+print(time() - start)
