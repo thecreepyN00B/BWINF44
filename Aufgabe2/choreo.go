@@ -14,20 +14,23 @@ func main() {
 
 	choreos := getChoreos([]*Figure{}, startlineup)
 
-	fmt.Println("Mögliche Choreographien: ")
-	printChoreos(choreos)
-	if len(choreos) > 1 {
-		fmt.Println("Möglichst viele unterschiedliche Figuren: ")
-		printChoreo(mostUniqueFigures(choreos))
-		fmt.Println("Möglichst viele Figuren: ")
-		printChoreo(mostFigures(choreos))
-		fmt.Println("Möglichst wenige Figuren: ")
-		printChoreo(leastFigures(choreos))
-		fmt.Println("Möglichst große von Tänzern zurückgelegte Strecke: ")
-		printChoreo(mostDistance(choreos))
-		fmt.Println("Möglichst kleine von Tänzern zurückgelegte Strecke: ")
-		printChoreo(leastDistance(choreos))
-
+	if len(choreos) > 0 {
+		fmt.Println("Mögliche Choreographien: ")
+		printChoreos(choreos)
+		if len(choreos) > 1 {
+			fmt.Println("Möglichst viele unterschiedliche Figuren: ")
+			printChoreo(mostUniqueFigures(choreos))
+			fmt.Println("Möglichst viele Figuren: ")
+			printChoreo(mostFigures(choreos))
+			fmt.Println("Möglichst wenige Figuren: ")
+			printChoreo(leastFigures(choreos))
+			fmt.Println("Möglichst große von Tänzern zurückgelegte Strecke: ")
+			printChoreo(mostDistance(choreos))
+			fmt.Println("Möglichst kleine von Tänzern zurückgelegte Strecke: ")
+			printChoreo(leastDistance(choreos))
+		}
+	} else {
+		fmt.Println("Es gibt keine gültigen Choreographien.")
 	}
 
 }
