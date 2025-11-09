@@ -15,18 +15,18 @@ func main() {
 	choreos := getChoreos([]*Figure{}, startlineup)
 
 	if len(choreos) > 0 {
-		fmt.Println("Mögliche Choreographien: ")
+		fmt.Println("Moegliche Choreographien: ")
 		printChoreos(choreos)
 		if len(choreos) > 1 {
-			fmt.Println("Möglichst viele unterschiedliche Figuren: ")
+			fmt.Println("Moeglichst viele unterschiedliche Figuren: ")
 			printChoreo(mostUniqueFigures(choreos))
-			fmt.Println("Möglichst viele Figuren: ")
+			fmt.Println("Moeglichst viele Figuren: ")
 			printChoreo(mostFigures(choreos))
-			fmt.Println("Möglichst wenige Figuren: ")
+			fmt.Println("Moeglichst wenige Figuren: ")
 			printChoreo(leastFigures(choreos))
-			fmt.Println("Möglichst große von Tänzern zurückgelegte Strecke: ")
+			fmt.Println("Moeglichst große von Tänzern zurückgelegte Strecke: ")
 			printChoreo(mostDistance(choreos))
-			fmt.Println("Möglichst kleine von Tänzern zurückgelegte Strecke: ")
+			fmt.Println("Moeglichst kleine von Tänzern zurückgelegte Strecke: ")
 			printChoreo(leastDistance(choreos))
 		}
 	} else {
