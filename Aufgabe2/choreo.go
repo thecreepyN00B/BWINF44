@@ -24,9 +24,9 @@ func main() {
 			printChoreo(mostFigures(choreos))
 			fmt.Println("Moeglichst wenige Figuren: ")
 			printChoreo(leastFigures(choreos))
-			fmt.Println("Moeglichst große von Tänzern zurueckgelegte Strecke: ")
+			fmt.Println("Moeglichst große von Taenzern zurueckgelegte Strecke: ")
 			printChoreo(mostDistance(choreos))
-			fmt.Println("Moeglichst kleine von Tänzern zurueckgelegte Strecke: ")
+			fmt.Println("Moeglichst kleine von Taenzern zurueckgelegte Strecke: ")
 			printChoreo(leastDistance(choreos))
 		}
 	} else {
