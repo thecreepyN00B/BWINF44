@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	figures, tacts = readFigures("choreo01.txt")
+	figures, tacts = readFigures("choreo02.txt")
 
 	choreos := getChoreos([]*Figure{}, startlineup)
 
@@ -30,7 +30,7 @@ func main() {
 			printChoreo(leastDistance(choreos))
 		}
 	} else {
-		fmt.Println("Es gibt keine gültigen Choreographien.")
+		fmt.Println("Es gibt keine gueltigen Choreographien.")
 	}
 
 }
