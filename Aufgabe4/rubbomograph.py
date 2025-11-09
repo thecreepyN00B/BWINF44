@@ -1,28 +1,10 @@
-import copy
 import os
 import sys
-from multiprocessing import Pool, cpu_count
-from webbrowser import Error
+
 from time import time
 start = time()
 
 sys.setrecursionlimit(1052)
-
-# from tqdm import tqdm
-
-
-# class Field:
-#     color = 0  # 0 -> unknown 1 -> no wood shavings 2 -> with wood shavings 3 -> knowingly unknown
-#     index = 0
-#     probability = 0
-#
-#     def __init__(self, col=0, index=0, probability=0):
-#         self.index = index
-#         self.color = col
-#         self.probability = probability
-
-    # def __int__(self):
-    #    return int(self.color)
 
 
 class Board:
@@ -30,170 +12,151 @@ class Board:
     n = 0
     spalten = []
     zeilen = []
-    diagonalen_ol_ur = []
-    diagonalen_ul_or = []
+    diagonalen_ou = [] # Diagonalen von unten nach oben
+    diagonalen_uo = [] # Diagonalen von oben nach unten
 
-    def __init__(self, n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, prev):
+    def __init__(self, length, spalten, zeilen, diagonalen_ou, diagonalen_uo, prev):
         self.fields = []
         if isinstance(prev, list):
-            for e in range(n):
-                self.fields.append(prev[e].copy())     # ([Field(prev[e][ee], e * n + ee) for ee in range(n)])
+            for e in range(length):
+                self.fields.append(prev[e].copy())
 
         else:
-            for e in range(n):
-                self.fields.append([0] * n)
+            for e in range(length):
+                self.fields.append([0] * length)
 
-        self.n = n
+        self.n = length
         self.spalten = [int(x) for x in spalten]
         self.zeilen = [int(x) for x in zeilen]
-        self.diagonalen_ol_ur = [int(x) for x in diagonalen_ol_ur]
-        self.diagonalen_ul_or = [int(x) for x in diagonalen_ul_or]
+        self.diagonalen_ou = [int(x) for x in diagonalen_ou]
+        self.diagonalen_uo = [int(x) for x in diagonalen_uo]
 
-    # def __str__(self):
-    #     liste = []
-    #     for e in range(self.n):
-    #         for ee in range(self.n):
-    #             liste.append(str(self.fields[e][ee]))
-    #     return str(liste) + str(self.numbers)
 
-    def printboard(self):
-        liste = [[r for r in row] for row in self.fields]
-        print(*(x for x in liste), sep="\n")
-        print()
-        print(self.spalten)
-        print(self.zeilen)
-        print(self.diagonalen_ol_ur)
-        print(self.diagonalen_ul_or)
-        print()
-
-    def getFieldColor(self, x, y):
+    def getFieldColor(self, y, x):
         return self.fields[y][x]
 
-    def setFieldColor(self, x, y, col):
+    def setFieldColor(self, y, x, col):
         self.fields[y][x] = int(col)
+
     def getFields(self):
             return self.fields
 
-    def count(self, x, col=0, zs='z'):
-        """
-        Schnelle, funktional äquivalente Implementierung der Original-count-Methode.
-        Liefert immer einen int zurück und erzeugt keine temporären Listen mit .copy().
-        """
-        n = self.n
-        if zs == 'z':
-            # row x
+    def count(self, x, col, mode):
+        if mode == 'z':
+            # zeile x
             return sum(1 for f in self.fields[x] if f == col)
 
-        elif zs == 's':
-            # column x
+        elif mode == 's':
+            # spalte x
             return sum(1 for row in self.fields if row[x] == col)
 
-        elif zs == 'd_ul':
+        elif mode == 'd_uo':
+            # diagonale von unten nach oben x
             total = 0
-            length = -abs(n - x - 1) + n
+            length = -abs(self.n - x - 1) + self.n # länge der Diagonale
             for e in range(length):
-                if x < n:
+                if x < self.n:
                     # entspricht: self.fields[self.n - 1 - e][x - e]
-                    fy, fx = n - 1 - e, x - e
+                    fy, fx = self.n - 1 - e, x - e
                 else:
                     # entspricht: self.fields[(self.n - 1) - (x - self.n + e + 1)][self.n - 1 - e]
-                    fy = (n - 1) - (x - n + e + 1)
-                    fx = n - 1 - e
-                # defensive: optional, entferne wenn sicher nie out-of-range
-                # if not (0 <= fy < n and 0 <= fx < n): continue
-                if self.fields[fy][fx] == col:
+                    fy, fx = (self.n - 1) - (x - self.n + e + 1), self.n - 1 - e
+
+                if self.getFieldColor(fy, fx) == col:
                     total += 1
             return total
 
-        elif zs == 'd_ol':
+        elif mode == 'd_ou':
+            # diagonale von oben nach unten x
             total = 0
-            length = -abs(n - x - 1) + n
+            length = -abs(self.n - x - 1) + self.n # länge der Diagonale
             for e in range(length):
-                if x < n:
+                if x < self.n:
                     # vereinfacht aus (n-1) - (n-1-e) == e
                     # entspricht: self.fields[e][x - e]
                     fy, fx = e, x - e
                 else:
                     # entspricht: self.fields[x - self.n + e + 1][self.n - 1 - e]
-                    fy, fx = x - n + e + 1, n - 1 - e
+                    fy, fx = x - self.n + e + 1, self.n - 1 - e
                 # defensive: optional, entferne wenn sicher nie out-of-range
                 # if not (0 <= fy < n and 0 <= fx < n): continue
-                if self.fields[fy][fx] == col:
+                if self.getFieldColor(fy, fx) == col:
                     total += 1
             return total
 
         else:
-            raise Exception
+            raise ValueError('nicht "z", "s", "d_uo" oder "d_ou" übergeben')
 
     def work(self):
-        for y in range(len(self.spalten)):
-            if self.count(y, 0, 's') == self.spalten[y] - self.count(y, 2, 's'):
+        for x in range(len(self.spalten)):
+            if self.count(x, 0, 's') == self.spalten[x] - self.count(x, 2, 's'):
+                for y in range(self.n):
+                    if self.getFieldColor(y, x) == 0:
+                        self.setFieldColor(y, x, 2)
+            elif self.count(x, 2, 's') == self.spalten[x]:
+                for y in range(self.n):
+                    if self.getFieldColor(y, x) == 0:
+                        self.setFieldColor(y, x, 1)
+
+        for y in range(len(self.zeilen)):
+            if self.count(y, 0, 'z') == self.zeilen[y] - self.count(y, 2, 'z'):
                 for x in range(self.n):
                     if self.getFieldColor(y, x) == 0:
                         self.setFieldColor(y, x, 2)
-            elif self.count(y, 2, 's') == self.spalten[y]:
+            elif self.count(y, 2, 'z') == self.zeilen[y]:
                 for x in range(self.n):
                     if self.getFieldColor(y, x) == 0:
                         self.setFieldColor(y, x, 1)
 
-        for x in range(len(self.zeilen)):
-            if self.count(x, 0, 'z') == self.zeilen[x] - self.count(x, 2, 'z'):
-                for y in range(self.n):
-                    if self.getFieldColor(y, x) == 0:
-                        self.setFieldColor(y, x, 2)
-            elif self.count(x, 2, 'z') == self.zeilen[x]:
-                for y in range(self.n):
-                    if self.getFieldColor(y, x) == 0:
-                        self.setFieldColor(y, x, 1)
-        for x in range(len(self.diagonalen_ol_ur)):
-            if self.count(x, 0, 'd_ol') == self.diagonalen_ol_ur[x] - self.count(x, 2, 'd_ol'):
+        for x in range(len(self.diagonalen_ou)):
+            if self.count(x, 0, 'd_ou') == self.diagonalen_ou[x] - self.count(x, 2, 'd_ou'):
                 for i in range(-abs(self.n - x - 1) + self.n):
                     if x < self.n:
-                        if self.getFieldColor(x - i, (self.n - 1) - (self.n - 1 - i)) == 0:
-                            self.setFieldColor(x - i, (self.n - 1) - (self.n - 1 - i), 2)
+                        if self.getFieldColor((self.n - 1) - (self.n - 1 - i), x - i) == 0:
+                            self.setFieldColor((self.n - 1) - (self.n - 1 - i), x - i, 2)
                     else:
-                        if self.getFieldColor(self.n - 1 - i, self.n + i - (
-                                -abs(self.n - x - 1) + self.n)) == 0:  # (self.n - 1) - (n - 1 - i)) == 0:
+                        if self.getFieldColor(self.n + i - (
+                                -abs(self.n - x - 1) + self.n), self.n - 1 - i) == 0:  # (self.n - 1) - (n - 1 - i)) == 0:
                             # print(2, x)
-                            self.setFieldColor(self.n - 1 - i, self.n + i - (-abs(self.n - x - 1) + self.n), 2)
-            elif self.count(x, 2, 'd_ol') == self.diagonalen_ol_ur[x]:
+                            self.setFieldColor(self.n + i - (-abs(self.n - x - 1) + self.n), self.n - 1 - i, 2)
+            elif self.count(x, 2, 'd_ou') == self.diagonalen_ou[x]:
                 for i in range(-abs(self.n - x - 1) + self.n):
                     if x < self.n:
-                        if self.getFieldColor(x - i, (self.n - 1) - (self.n - 1 - i)) == 0:
-                            self.setFieldColor(x - i, (self.n - 1) - (self.n - 1 - i), 1)
+                        if self.getFieldColor((self.n - 1) - (self.n - 1 - i), x - i) == 0:
+                            self.setFieldColor((self.n - 1) - (self.n - 1 - i), x - i, 1)
                     else:
-                        if self.getFieldColor(self.n - 1 - i, x - self.n + i + 1) == 0:
-                            self.setFieldColor(self.n - 1 - i, x - self.n + i + 1, 1)
+                        if self.getFieldColor(x - self.n + i + 1, self.n - 1 - i) == 0:
+                            self.setFieldColor(x - self.n + i + 1, self.n - 1 - i, 1)
 
-        for x in range(len(self.diagonalen_ul_or)):
-            if self.count(x, 0, 'd_ul') == self.diagonalen_ul_or[x] - self.count(x, 2, 'd_ul'):
+        for x in range(len(self.diagonalen_uo)):
+            if self.count(x, 0, 'd_uo') == self.diagonalen_uo[x] - self.count(x, 2, 'd_uo'):
                 for i in range(-abs(self.n - x - 1) + self.n):
                     if x < self.n:
-                        if self.getFieldColor(x - i, self.n - 1 - i) == 0:
-                            self.setFieldColor(x - i, self.n - 1 - i, 2)
+                        if self.getFieldColor(self.n - 1 - i, x - i) == 0:
+                            self.setFieldColor(self.n - 1 - i, x - i, 2)
                     else:
-                        if self.getFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1)) == 0:
-                            self.setFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1), 2)
-            elif self.count(x, 2, 'd_ul') == self.diagonalen_ul_or[x]:
+                        if self.getFieldColor((self.n - 1) - (x - self.n + i + 1), self.n - 1 - i) == 0:
+                            self.setFieldColor((self.n - 1) - (x - self.n + i + 1), self.n - 1 - i, 2)
+            elif self.count(x, 2, 'd_uo') == self.diagonalen_uo[x]:
                 for i in range(-abs(self.n - x - 1) + self.n):
                     if x < self.n:
-                        if self.getFieldColor(x - i, self.n - 1 - i) == 0:
-                            self.setFieldColor(x - i, self.n - 1 - i, 1)
+                        if self.getFieldColor(self.n - 1 - i, x - i) == 0:
+                            self.setFieldColor(self.n - 1 - i, x - i, 1)
                     else:
-                        if self.getFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1)) == 0:
-                            self.setFieldColor(self.n - 1 - i, (self.n - 1) - (x - self.n + i + 1), 1)
+                        if self.getFieldColor((self.n - 1) - (x - self.n + i + 1), self.n - 1 - i) == 0:
+                            self.setFieldColor((self.n - 1) - (x - self.n + i + 1), self.n - 1 - i, 1)
 
-    def working(self):
+    def workWhilePossible(self):
         temp1 = 1
         temp2 = 0
-        while temp1 != temp2 and not self.check():
+        while temp1 != temp2 and not self.hasError():
             temp1 = [[r for r in row] for row in self.fields]
 
             self.work()
 
             temp2 = [[r for r in row] for row in self.fields]
 
-    def check(self):
+    def hasError(self):
         for y in range(len(self.spalten)):
             if self.count(y, 1, 's') > self.n - self.spalten[y]:
                 return True
@@ -206,183 +169,108 @@ class Board:
             elif self.count(x, 2, 'z') > self.zeilen[x]:
                 return True
 
-        for x in range(len(self.diagonalen_ol_ur)):
-            if self.count(x, 1, 'd_ol') > self.n - self.diagonalen_ol_ur[x]:
+        for x in range(len(self.diagonalen_ou)):
+            if self.count(x, 1, 'd_ou') > self.n - self.diagonalen_ou[x]:
                 return True
-            elif self.count(x, 2, 'd_ol') > self.diagonalen_ol_ur[x]:
+            elif self.count(x, 2, 'd_ou') > self.diagonalen_ou[x]:
                 return True
 
-        for x in range(len(self.diagonalen_ul_or)):
-            if self.count(x, 1, 'd_ul') > self.n - self.diagonalen_ul_or[x]:
+        for x in range(len(self.diagonalen_uo)):
+            if self.count(x, 1, 'd_uo') > self.n - self.diagonalen_uo[x]:
                 return True
-            elif self.count(x, 2, 'd_ul') > self.diagonalen_ul_or[x]:
+            elif self.count(x, 2, 'd_uo') > self.diagonalen_uo[x]:
                 return True
         return False
 
     def search(self):
         for i in range(self.n):
             for j in range(self.n):
-                if self.getFieldColor(j, i) == 0:
+                if self.getFieldColor(i, j) == 0:
                     return [i, j]
+        raise ValueError("0 in self.fields gesucht und nicht vorhanden.")
 
-    def finish(self):
+    def isFinished(self):
         for i in range(self.n):
             for j in range(self.n):
-                if self.getFieldColor(j, i) == 0:
+                if self.getFieldColor(i, j) == 0:
                     return False
         return True
 
-
-    def solvestep(self):
-        # self.printboard()
-        # print(*(x for x in self.fields), sep= "\n")
-        if solution_finished():
-            # print(*(x for x in solution), sep="\n")
+    def solve(self):
+        if isSolutionFinished():
             return None
 
-        self.working()
+        self.workWhilePossible()
 
-        if self.finish():
-            if not self.check():
-                # sols2check(temp2)
-                # return [temp2]
+        if self.isFinished():
+            if not self.hasError():
 
                 for i in range(self.n):
                     for j in range(self.n):
                         if solution[i][j] == 0:
-                            solution[i][j] = self.fields[i][j]
-                        elif solution[i][j] != self.fields[i][j] and solution[i][j] in [1, 2]:
+                            solution[i][j] = self.getFieldColor(i, j)
+                        elif solution[i][j] != self.getFieldColor(i, j) and solution[i][j] in [1, 2]:
                             solution[i][j] = 3
-                print(*(x for x in solution), sep = "\n")
-                print()
-                return None
 
-        # if not self.check() and not (any(1 in j for j in solution) or any(1 in j for j in solution)):
-
-            # temp2 = [[r for r in row] for row in self.fields]
-            #
-            # searched = self.search()
-            # # print(searched)
-            # temp2[searched[0]][searched[1]] = 2
-            # next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
-            # next1.firststep()
-            #
-            # temp2[searched[0]][searched[1]] = 1
-            # next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
-            # next2.firststep()
-
-        elif not self.check():
-            s_12 = search_12in_solution()
-            # print(s_12)
-            temp12 = [[r for r in row] for row in self.fields]
-            temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
-            next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp12)
-            next12.onestep()
-
-    def onestep(self, pos = None):
-        if solution_finished():
-            # print(*(x for x in solution), sep="\n")
-            return None
-
-        kopie = [[r for r in row] for row in self.fields]
-
-
-        self.working()
-
-        if self.finish():
-            # print(1)
-            if not self.check():
-                # print(2)
-                # sols2check(temp2)
-                # return [temp2]
-
-                for i in range(self.n):
-                    for j in range(self.n):
-                        if solution[i][j] == 0:
-                            solution[i][j] = self.fields[i][j]
-                        elif solution[i][j] != self.fields[i][j] and solution[i][j] in [1, 2]:
-                            solution[i][j] = 3
-                # print(*(x for x in solution), sep="\n")
-                # print(2)
-                # print(*(x for x in solution), sep = "\n")
-                # print()
-                if solution_finished():
+                if isSolutionFinished():
                     return True
 
-                s_12 = search_12in_solution()
-                # print(s_12)
+                s_12 = getFirstPos12()
                 temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
                 temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
-                next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp12)
+                next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp12)
 
-                while not next12.onestep():
+                while not next12.solve():
                     solution[s_12[0]][s_12[1]] += 3
-                    # print(5)
-                    # print(*(x for x in solution), sep= "\n")
-                    if solution_finished():
-                        # print(3)
-                        break
-                    s_12 = search_12in_solution()
+                    if isSolutionFinished():
+                        return True
+                    s_12 = getFirstPos12()
                     temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
                     temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
-                    next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or,temp12)
+                    next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp12)
 
                 return True
 
 
-        if not self.check():
-            # print(6)
+        if not self.hasError():
 
             temp2 = [[r for r in row] for row in self.fields]
 
             searched = self.search()
-            # print(searched)
             temp2[searched[0]][searched[1]] = 2
-            next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
-            is_possible = next1.onestep(searched)
-            # print(is_possible)
+            next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp2)
+            is_possible = next1.solve()
             if not is_possible:
                 temp2[searched[0]][searched[1]] = 1
-                next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, temp2)
-                is_possible = next1.onestep(searched)
+                next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp2)
+                is_possible = next1.solve()
             return is_possible
 
-        # elif pos:
-        #     print(5)
-        #     kopie[pos[0]][pos[1]] = 1
-        #     next2 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ol_ur, self.diagonalen_ul_or, kopie)
-        #     is_possible = next2.onestep()
-        #     return is_possible
         return False
 
-
-
-
-
-
-def solution_finished():
+def isSolutionFinished():
     for i in solution:
         for j in i:
             if j in [0, 1, 2]:
                 return False
-    # print(*(x for x in solution), sep="\n")
     return True
 
-def search_12in_solution():
+def getFirstPos12():
     for i in range(len(solution)):
         for j in range(len(solution)):
             if solution[i][j] in [1, 2]:
                 return [i, j, solution[i][j]]
+    raise ValueError("1 oder 2 in solution gesucht und nicht vorhanden.")
 
-def mainm(file):
+def readFile(file):
     with open(file, 'r') as e:
         n = int(e.readline())
         spalten = e.readline().split()
         zeilen = e.readline().split()
-        diagonalen_ol_ur = e.readline().split()
-        diagonalen_ul_or = e.readline().split()
+        diagonalen_ou = e.readline().split()
+        diagonalen_uo = e.readline().split()
 
-    brettttt = Board(n, spalten, zeilen, diagonalen_ol_ur, diagonalen_ul_or, 3)
+    brettttt = Board(n, spalten, zeilen, diagonalen_ou, diagonalen_uo, 3)
     return brettttt
 
 
@@ -393,8 +281,8 @@ def solve_file(f):
     # solution = [[0] * n] * n
     print(f"Starte {f}...", flush=True)
 
-    sol = mainm(f)
-    sol.working()
+    sol = readFile(f)
+    sol.workWhilePossible()
     global solution
     solution = sol.getFields()
     # print(*(x for x in solution), sep="\n")
@@ -405,7 +293,7 @@ def solve_file(f):
     # print()
     # print(*(x for x in solution), sep="\n")
 
-    mainm(f).onestep()
+    readFile(f).solve()
     result_str = f"{f}\n"
     # print(*(x for x in solution), sep = "\n")
 
