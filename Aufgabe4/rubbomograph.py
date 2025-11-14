@@ -115,9 +115,7 @@ class Board:
                         if self.getFieldColor((self.n - 1) - (self.n - 1 - i), x - i) == 0:
                             self.setFieldColor((self.n - 1) - (self.n - 1 - i), x - i, 2)
                     else:
-                        if self.getFieldColor(self.n + i - (
-                                -abs(self.n - x - 1) + self.n), self.n - 1 - i) == 0:  # (self.n - 1) - (n - 1 - i)) == 0:
-                            # print(2, x)
+                        if self.getFieldColor(self.n + i - (-abs(self.n - x - 1) + self.n), self.n - 1 - i) == 0:  # (self.n - 1) - (n - 1 - i)) == 0:
                             self.setFieldColor(self.n + i - (-abs(self.n - x - 1) + self.n), self.n - 1 - i, 2)
             elif self.count(x, 2, 'd_ou') == self.diagonalen_ou[x]:
                 for i in range(-abs(self.n - x - 1) + self.n):
