@@ -272,17 +272,13 @@ def solve_file(f):
     sol.workWhilePossible()
     global solution
     solution = sol.getFields()
-    # print(*(x for x in solution), sep="\n")
     for i in range(len(solution)):
         for j in range(len(solution)):
             if solution[i][j] in [1, 2]:
                 solution[i][j] += 3
-    # print()
-    # print(*(x for x in solution), sep="\n")
 
     readFile(f).solve()
     result_str = f"{f}\n"
-    # print(*(x for x in solution), sep = "\n")
 
     for j in solution:
         schtring = "".join({2:"██", 0:"  ", 1:"░░", 3:"? ", 4:"░░", 5:"██"}[c] for c in j)
@@ -291,26 +287,12 @@ def solve_file(f):
     print(f"Fertig mit {f}!", flush=True)
     return result_str
 
-# def sols2check(sol):
-#     for i in sols2:
-#         if i == sol:
-#             raise Exception("Wiederholung!")
 
 
 if __name__ == "__main__":
     solution = [[]]
     files = [f for f in os.listdir(".") if f.endswith(".txt")]
-    # print(f"Starte mit {len(files)} Dateien auf {cpu_count()} Kernen...\n")
-
-    # with Pool(cpu_count()) as pool:
-    #     for res in tqdm(pool.imap_unordered(solve_file, files, chunksize=1), total=len(files)):
-    #         if res:
-    #             print(res, flush=True)
-
-    # sols2 = []
     for i in files:
         print(solve_file(i))
 
-# t.write(str(brettttt))
-# t.close()
 print(time() - start)
