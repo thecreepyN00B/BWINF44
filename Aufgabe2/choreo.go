@@ -15,31 +15,30 @@ func main() {
 	choreos := getChoreos([]*Figure{}, startlineup)
 
 	if len(choreos) > 0 {
-		fmt.Println("Moegliche Choreographien: ")
+		fmt.Println("Mögliche Choreographien: ")
 		printChoreos(choreos)
 		if len(choreos) > 1 {
-			fmt.Println("Moeglichst viele unterschiedliche Figuren: ")
+			fmt.Println("Möglichst viele unterschiedliche Figuren: ")
 			printChoreo(mostUniqueFigures(choreos))
-			fmt.Println("Moeglichst viele Figuren: ")
+			fmt.Println("Möglichst viele Figuren: ")
 			printChoreo(mostFigures(choreos))
-			fmt.Println("Moeglichst wenige Figuren: ")
+			fmt.Println("Möglichst wenige Figuren: ")
 			printChoreo(leastFigures(choreos))
-			fmt.Println("Moeglichst grosse von Taenzern zurueckgelegte Strecke: ")
+			fmt.Println("Möglichst große von Tänzern zurückgelegte Strecke: ")
 			printChoreo(mostDistance(choreos))
-			fmt.Println("Moeglichst kleine von Taenzern zurueckgelegte Strecke: ")
+			fmt.Println("Möglichst kleine von Tänzern zurückgelegte Strecke: ")
 			printChoreo(leastDistance(choreos))
 		}
 	} else {
-		fmt.Println("Es gibt keine gueltigen Choreographien.")
+		fmt.Println("Es gibt keine gültigen Choreographien.")
 	}
+
 }
 
 const startlineup string = "ABCDEFGHIJKLMNOP"
 
-var (
-	figures []*Figure
-	tacts   int
-)
+var figures []*Figure
+var tacts int
 
 type Figure struct {
 	name   string
@@ -61,6 +60,7 @@ func (fig Figure) String() string {
 
 func readFigures(file string) ([]*Figure, int) {
 	r, err := os.Open(file)
+
 	if err != nil {
 		panic(err)
 	}
