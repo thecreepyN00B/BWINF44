@@ -20,7 +20,7 @@ def parseTree(file: str) -> dict: # Funktion zum Umwandeln der Beispiele in Dict
         index = 1 # Index 1, da die erste Klammer der zu behandelnde Knoten selbst ist
         leftParanthesesCount = 1 # Variable zum Speichern der sich öffnenden Klammer bzw. Kinder
 
-        while leftParanthesesCount != 0: # Durchgehen des Knotens, bis dieser abgearbeitet ist, also seine Klammer geschlossen wird
+        while leftParanthesesCount > 0: # Durchgehen des Knotens, bis dieser abgearbeitet ist, also seine Klammer geschlossen wird
             if index == len(remainingLine): # Überprüfen, falls das Kind keine weiteren Kinder besitzt
                 break
 

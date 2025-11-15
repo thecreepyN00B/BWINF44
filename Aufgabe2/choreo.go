@@ -32,13 +32,14 @@ func main() {
 	} else {
 		fmt.Println("Es gibt keine gueltigen Choreographien.")
 	}
-
 }
 
 const startlineup string = "ABCDEFGHIJKLMNOP"
 
-var figures []*Figure
-var tacts int
+var (
+	figures []*Figure
+	tacts   int
+)
 
 type Figure struct {
 	name   string
@@ -60,7 +61,6 @@ func (fig Figure) String() string {
 
 func readFigures(file string) ([]*Figure, int) {
 	r, err := os.Open(file)
-
 	if err != nil {
 		panic(err)
 	}
