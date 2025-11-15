@@ -56,10 +56,8 @@ class Board:
             length = -abs(self.n - x - 1) + self.n # länge der Diagonale
             for e in range(length):
                 if x < self.n:
-                    # entspricht: self.fields[self.n - 1 - e][x - e]
                     fy, fx = self.n - 1 - e, x - e
                 else:
-                    # entspricht: self.fields[(self.n - 1) - (x - self.n + e + 1)][self.n - 1 - e]
                     fy, fx = (self.n - 1) - (x - self.n + e + 1), self.n - 1 - e
 
                 if self.getFieldColor(fy, fx) == col:
@@ -72,14 +70,9 @@ class Board:
             length = -abs(self.n - x - 1) + self.n # länge der Diagonale
             for e in range(length):
                 if x < self.n:
-                    # vereinfacht aus (n-1) - (n-1-e) == e
-                    # entspricht: self.fields[e][x - e]
                     fy, fx = e, x - e
                 else:
-                    # entspricht: self.fields[x - self.n + e + 1][self.n - 1 - e]
                     fy, fx = x - self.n + e + 1, self.n - 1 - e
-                # defensive: optional, entferne wenn sicher nie out-of-range
-                # if not (0 <= fy < n and 0 <= fx < n): continue
                 if self.getFieldColor(fy, fx) == col:
                     total += 1
             return total
@@ -115,7 +108,7 @@ class Board:
                         if self.getFieldColor((self.n - 1) - (self.n - 1 - i), x - i) == 0:
                             self.setFieldColor((self.n - 1) - (self.n - 1 - i), x - i, 2)
                     else:
-                        if self.getFieldColor(self.n + i - (-abs(self.n - x - 1) + self.n), self.n - 1 - i) == 0:  # (self.n - 1) - (n - 1 - i)) == 0:
+                        if self.getFieldColor(self.n + i - (-abs(self.n - x - 1) + self.n), self.n - 1 - i) == 0:
                             self.setFieldColor(self.n + i - (-abs(self.n - x - 1) + self.n), self.n - 1 - i, 2)
             elif self.count(x, 2, 'd_ou') == self.diagonalen_ou[x]:
                 for i in range(-abs(self.n - x - 1) + self.n):
@@ -195,56 +188,53 @@ class Board:
         return True
 
     def solve(self):
-        if isSolutionFinished():
-            return None
 
         self.workWhilePossible()
 
+        if self.hasError():
+            return False
+
         if self.isFinished():
-            if not self.hasError():
 
-                for i in range(self.n):
-                    for j in range(self.n):
-                        if solution[i][j] == 0:
-                            solution[i][j] = self.getFieldColor(i, j)
-                        elif solution[i][j] != self.getFieldColor(i, j) and solution[i][j] in [1, 2]:
-                            solution[i][j] = 3
+            for i in range(self.n):
+                for j in range(self.n):
+                    if solution[i][j] == 0:
+                        solution[i][j] = self.getFieldColor(i, j)
+                    elif solution[i][j] != self.getFieldColor(i, j) and solution[i][j] in [1, 2]:
+                        solution[i][j] = 3
 
+            if isSolutionFinished():
+                return True
+
+            s_12 = getFirstPos12()
+            temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
+            temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
+            next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp12)
+
+            while not next12.solve():
+                solution[s_12[0]][s_12[1]] += 3
                 if isSolutionFinished():
                     return True
-
                 s_12 = getFirstPos12()
                 temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
                 temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
                 next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp12)
 
-                while not next12.solve():
-                    solution[s_12[0]][s_12[1]] += 3
-                    if isSolutionFinished():
-                        return True
-                    s_12 = getFirstPos12()
-                    temp12 = [[r for r in row] for row in [[0] * self.n] * self.n]
-                    temp12[s_12[0]][s_12[1]] = 3 - s_12[2]
-                    next12 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp12)
-
-                return True
+            return True
 
 
-        if not self.hasError():
+        temp2 = [[r for r in row] for row in self.fields]
 
-            temp2 = [[r for r in row] for row in self.fields]
-
-            searched = self.search()
-            temp2[searched[0]][searched[1]] = 2
+        searched = self.search()
+        temp2[searched[0]][searched[1]] = 2
+        next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp2)
+        is_possible = next1.solve()
+        if not is_possible:
+            temp2[searched[0]][searched[1]] = 1
             next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp2)
             is_possible = next1.solve()
-            if not is_possible:
-                temp2[searched[0]][searched[1]] = 1
-                next1 = Board(self.n, self.spalten, self.zeilen, self.diagonalen_ou, self.diagonalen_uo, temp2)
-                is_possible = next1.solve()
-            return is_possible
+        return is_possible
 
-        return False
 
 def isSolutionFinished():
     for i in solution:
@@ -276,7 +266,6 @@ def readFile(file):
 def solve_file(f):
     if not f.endswith(".txt"):
         return None
-    # solution = [[0] * n] * n
     print(f"Starte {f}...", flush=True)
 
     sol = readFile(f)
