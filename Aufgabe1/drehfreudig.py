@@ -99,7 +99,7 @@ def drawTree(tree: dict, weights: list) -> str:
     def drawStructure(nodes: dict, x: float) -> None:
         for node in nodes:
             if node == "0.0": # Root muss aufgrund der Nichterfassung als Child bzw. Kind seperat gezeichnet werden
-                draw.rectangle((0, 0, canvas_width, yscale), fill="orange", outline="black", width=5)
+                draw.rectangle((0, 0, canvas_width, canvas_height/2), fill="orange", outline="black", width=5)
 
             if node == "weight":
                 continue
