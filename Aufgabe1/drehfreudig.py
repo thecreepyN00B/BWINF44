@@ -71,7 +71,8 @@ def weighTree(tree: dict, w: list) -> tuple[dict, list[tuple]]: # DFS für das G
                 continue
             
             # Dem Kind wird das Gewicht zugeordnet
-            weightedDict[node][childNode]["weight"] = weightedDict[node]["weight"] * (len(weightedDict[node])-1)
+            weightedDict[node][childNode]["weight"] = weightedDict[node]["weight"] * \
+                (len(weightedDict[node])-1)
 
         weighTree(weightedDict[node], weights) # Rekursiver Aufruf mit dem nächsten Parent
 
@@ -108,16 +109,16 @@ def drawTree(tree: dict, weights: list) -> str:
                 if childNode == "weight":
                     continue
                 
-                # Breite des zuzeichnenden Rechtsecks
-                width = (canvas_width / nodes[node][childNode]["weight"]) * int(childNode[-1]) + (canvas_width / nodes[node]["weight"]) * int(node[-1])
+                # relative Verschiebung des zu zeichnenden Rechtecks
+                verschiebung = (canvas_width / nodes[node][childNode]["weight"]) * int(childNode[-1]) + (canvas_width / nodes[node]["weight"]) * int(node[-1])
 
-                rx1 = x + width # linker Ansatzpunkt
-                ry1 = (int(childNode[0])) * yscale # oberer Ansatzpunkt
-                rx2 = x + width + (canvas_width / nodes[node][childNode]["weight"]) # rechter Ansatzpunkt
+                rx1 =  x + verschiebung # linker Ansatzpunkt
+                ry1 = int(childNode[0]) * yscale # oberer Ansatzpunkt
+                rx2 = x + verschiebung + (canvas_width / nodes[node][childNode]["weight"]) # rechter Ansatzpunkt
                 ry2 = canvas_height/2 # unterer Ansatzpunkt
 
                 lp1 = x + (canvas_width / nodes[node]["weight"] * (int(node[-1]) + .5)), int(node[0]) * yscale + yscale * .3 # erster Ansatzpunkt der Linie (x,y)
-                lp2 = x + width + (canvas_width / nodes[node][childNode]["weight"]) / 2, ry1 + yscale * .3 # zweiter Ansatzpunkt der Linie (x,y)
+                lp2 = (rx1 + rx2) / 2, ry1 + yscale * .3 # x + verschiebung + (canvas_width / nodes[node][childNode]["weight"]) / 2, ry1 + yscale * .3 # zweiter Ansatzpunkt der Linie (x,y)
                 lp = (*lp1, *lp2) # line() erfordert Koordinaten im Format ((x,y),(x,y))
 
                 draw.rectangle((rx1, ry1, rx2, ry2),
