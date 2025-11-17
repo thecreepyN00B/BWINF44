@@ -10,7 +10,10 @@ import (
 )
 
 func main() {
-	figures, tacts = readFigures("choreo02.txt")
+	var file string
+	fmt.Print("Dateiname: ")
+	fmt.Scanln(&file)
+	figures, tacts = readFigures(file)
 
 	choreos := getChoreos([]*Figure{}, startlineup)
 
