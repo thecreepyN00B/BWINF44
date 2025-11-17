@@ -6,74 +6,103 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 )
 
-func einlesenAufgabe(file string) ([]string, [][]string) {
+type Gericht struct {
+	Zutaten []string
+}
 
+// ------------------- Einlesen -------------------
+func einlesenAufgabe(file string) ([]string, []Gericht) {
 	zutaten := []string{}
-	gerichte := [][]string{}
+	gerichte := []Gericht{}
 
-	r, err := os.Open(file)
-
+	f, err := os.Open(file)
 	if err != nil {
 		panic(err)
 	}
+	defer f.Close()
 
-	defer r.Close()
-
-	scanner := bufio.NewScanner(r)
-
-	//	scanner.Split(bufio.ScanWords)
-
+	scanner := bufio.NewScanner(f)
 	scanner.Scan()
 	anzahlz, _ := strconv.Atoi(scanner.Text())
-
-	for range anzahlz {
+	for i := 0; i < anzahlz; i++ {
 		scanner.Scan()
 		zutaten = append(zutaten, scanner.Text())
 	}
 
 	scanner.Scan()
 	anzahlg, _ := strconv.Atoi(scanner.Text())
-
-	for range anzahlg {
+	for i := 0; i < anzahlg; i++ {
 		scanner.Scan()
-		hilf := []string{}
-		hilf = append(hilf, scanner.Text())
-		gerichte = append(gerichte, hilf)
+		teile := strings.Fields(scanner.Text())
+		sort.Strings(teile)
+		gerichte = append(gerichte, Gericht{Zutaten: teile})
 	}
-	fmt.Println(zutaten, gerichte)
-	return zutaten, gerichte
-}
 
-func einschraenkungenbeimgenerieren(kombi []string) bool {
-	if len(kombi) < 2 {
-		return true
+	// Entferne Zutaten, die in keinem Gericht vorkommen
+	validZutaten := map[string]bool{}
+	for _, g := range gerichte {
+		for _, z := range g.Zutaten {
+			validZutaten[z] = true
+		}
 	}
-	return kombi[len(kombi)-1] != kombi[len(kombi)-2]
-}
-
-type Gericht struct {
-	Zutaten  string
-	Erfuellt bool
-}
-
-func Umwandeln(Anbauplaneinfach []string) []string {
-	Anbauplankomplex := []string{}
-	for _, v := range Anbauplaneinfach {
-		Anbauplankomplex = append(Anbauplankomplex, v, v, v)
+	filtered := []string{}
+	for _, z := range zutaten {
+		if validZutaten[z] {
+			filtered = append(filtered, z)
+		}
 	}
-	Kopie := []string{}
-	Kopie = append(Anbauplankomplex[:12], Anbauplankomplex[13:24]...)
-	Kopie = append(Kopie, Anbauplankomplex[13])
-	Kopie = append(Kopie, Anbauplankomplex[26:]...)
-	Kopie = append(Kopie, Anbauplankomplex[24], Anbauplankomplex[24]) // aus 25 -> 24
+	zutaten = filtered
 
-	return Kopie
+	// Entferne Gerichte mit nicht existierenden Zutaten
+	finalGerichte := []Gericht{}
+	for _, g := range gerichte {
+		ok := true
+		for _, z := range g.Zutaten {
+			if !validZutaten[z] {
+				ok = false
+				break
+			}
+		}
+		if ok {
+			finalGerichte = append(finalGerichte, g)
+		}
+	}
+
+	return zutaten, finalGerichte
 }
 
+// ------------------- Umwandeln -------------------
+func Umwandeln(plan []string) []string {
+	ap := []string{}
+	for _, z := range plan {
+		ap = append(ap, z, z, z)
+	}
+
+	out := []string{}
+	if len(ap) >= 12 {
+		out = append(out, ap[:12]...)
+	}
+	if len(ap) >= 24 {
+		out = append(out, ap[13:24]...)
+	}
+	if len(ap) > 13 {
+		out = append(out, ap[13])
+	}
+	if len(ap) > 26 {
+		out = append(out, ap[26:]...)
+	}
+	if len(ap) > 24 {
+		out = append(out, ap[24], ap[24])
+	}
+	return out
+}
+
+// ------------------- Gericht Vergleich -------------------
 func SlicesGleich(a, b []string) bool {
-	for i := range 3 {
+	for i := 0; i < 3; i++ {
 		if a[i] != b[i] {
 			return false
 		}
@@ -81,75 +110,106 @@ func SlicesGleich(a, b []string) bool {
 	return true
 }
 
-func erfuelltegerichte(kombi []string, Gerichte [][]string) int {
-	gerichteMap := make(map[string]*Gericht)
-	Anbauplan := Umwandeln(kombi)
-	counter := 0
-
-	if len(kombi) != 12 {
+// ------------------- Bewertung -------------------
+func erfuelltegerichte(plan []string, gerichte []Gericht) int {
+	if len(plan) != 12 {
 		return 12
 	}
+	ap := Umwandeln(plan)
+	counter := 0
+	for i := 0; i < 12; i++ {
+		monat := []string{ap[i], ap[i+12], ap[i+24]}
 
-	for _, g := range Gerichte {
-		name := fmt.Sprintf("%v", g)
-		gerichteMap[name] = &Gericht{Zutaten: name, Erfuellt: false}
-	}
-	for i := range 12 {
-		Monat := append([]string{}, Anbauplan[i], Anbauplan[i+12], Anbauplan[i+24])
-		sort.Strings(Monat)
-		for a := range Gerichte {
-			aktuellesGericht := Gerichte[a]
-			kopie := aktuellesGericht
-			sort.Strings(kopie)
-			if SlicesGleich(Monat, kopie) {
-				name := fmt.Sprintf("%v", aktuellesGericht)
-				gerichteMap[name].Erfuellt = true
+		// Placeholder "0" → automatisch erfüllt
+		if monat[0] == "0" || monat[1] == "0" || monat[2] == "0" {
+			counter++
+			continue
+		}
+		sort.Strings(monat)
+		for _, g := range gerichte {
+			if monat[0] == g.Zutaten[0] && monat[1] == g.Zutaten[1] && monat[2] == g.Zutaten[2] {
+				counter++
+				break
 			}
 		}
-	}
-	for _, g := range gerichteMap {
-		if g.Erfuellt == true {
-			counter++
-		}
-	}
-	for _, g := range gerichteMap {
-		g.Erfuellt = false
 	}
 	return counter
 }
 
-func solve() {
-	b := 12
-	Zutaten, Gerichte := einlesenAufgabe("bauern1.txt")
-	b = min(b, len(Gerichte))
+// ------------------- Early Pruning -------------------
+var order = []int{0, 4, 8, 1, 5, 9, 2, 6, 10, 3, 7, 11}
 
-	for i := 0; i < b; i++ {
-		if generate(Zutaten, []string{}, 0, Gerichte, b-i) {
-			return
-		}
-	}
-}
-
-func generate(all []string, current []string, depth int, Gerichte [][]string, fehlertoleranz int) bool {
+func generate(all []string, current []string, depth int, gerichte []Gericht, fehlertoleranz int) bool {
 	if depth == 12 {
-		if erfuelltegerichte(current, Gerichte) >= fehlertoleranz {
-			Ausgabe := Umwandeln(current)
-			fmt.Println(Ausgabe)
+		if erfuelltegerichte(current, gerichte) >= fehlertoleranz {
+			out := Umwandeln(current)
+			fmt.Println("Gewächshaus 1:", out[0:12])
+			fmt.Println("Gewächshaus 2:", out[12:24])
+			fmt.Println("Gewächshaus 3:", out[24:36])
 			return true
 		}
 		return false
 	}
-	for _, val := range all {
-		next := append(current, val)
 
-		if einschraenkungenbeimgenerieren(next) || fehlertoleranz < 12 {
-			if generate(all, next, depth+1, Gerichte, fehlertoleranz) {
-				return true
+	idx := order[depth]
+
+	for _, val := range all {
+		old := current[idx]
+		current[idx] = val
+
+		// Early Pruning
+		remaining := 12 - depth
+		maxPossible := 0
+		for _, g := range gerichte {
+			missing := 0
+			for _, z := range g.Zutaten {
+				found := false
+				for i := 0; i <= depth; i++ {
+					if current[i] == z {
+						found = true
+						break
+					}
+				}
+				if !found {
+					missing++
+				}
+			}
+			if missing <= remaining {
+				maxPossible++
 			}
 		}
+		if maxPossible < fehlertoleranz {
+			current[idx] = old
+			continue
+		}
+
+		if generate(all, current, depth+1, gerichte, fehlertoleranz) {
+			return true
+		}
+
+		current[idx] = old
+	}
+	return false
+}
+
+// ------------------- Solve -------------------
+func solve() {
+	zutaten, gerichte := einlesenAufgabe("bauern3.txt")
+	b := len(gerichte)
+	if b > 12 {
+		b = 12
 	}
 
-	return false
+	current := make([]string, 12)
+	for i := range current {
+		current[i] = "0"
+	}
+
+	for need := b; need >= 0; need-- {
+		if generate(zutaten, current, 0, gerichte, need) {
+			return
+		}
+	}
 }
 
 func main() {
