@@ -1,6 +1,6 @@
 # Lösungen zum Bundeswettbewerb Informatik 44. Runde
 In dieser Repository sind unsere Lösungen zur 44. runde des BWInf enthalten. Die Aufgaben wurden jeweils bearbeitet von:
-1.  TheCreepyN00B
+1.  thecreepyN00B
 2.  scuncgg
 3.  gg-cmd
 4.  Quokkk
